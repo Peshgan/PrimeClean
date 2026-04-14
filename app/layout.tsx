@@ -3,6 +3,8 @@ import { Inter, Montserrat } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import SupportWidget from "@/components/ui/SupportWidget";
+import ScrollReveal from "@/components/ui/ScrollReveal";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -83,6 +85,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Header />
         <main>{children}</main>
         <Footer />
+        <SupportWidget />
+        <ScrollReveal />
       </body>
     </html>
   );

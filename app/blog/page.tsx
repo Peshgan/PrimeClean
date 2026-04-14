@@ -1,47 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { blogPosts } from "@/lib/data/blog";
 
 export const metadata: Metadata = {
   title: "Блог о клининге — полезные статьи | PrimeClean",
   description:
     "Полезные статьи о профессиональной уборке, клининге, выборе средств и лайфхаки для поддержания чистоты в доме и офисе в Минске.",
 };
-
-const posts = [
-  {
-    slug: "kak-vybrat-kliningovuyu-kompaniyu",
-    title: "Как выбрать клининговую компанию в Минске: 7 советов",
-    excerpt: "На что обратить внимание при выборе клинингового сервиса, чтобы не разочароваться в результате.",
-    date: "10 апреля 2025",
-    category: "Советы",
-    readTime: "5 мин",
-  },
-  {
-    slug: "chto-vkhodit-v-generalnuyu-uborku",
-    title: "Что входит в генеральную уборку квартиры",
-    excerpt: "Подробный чек-лист всех работ, которые включает полноценная генеральная уборка.",
-    date: "2 апреля 2025",
-    category: "Инструкции",
-    readTime: "4 мин",
-  },
-  {
-    slug: "uborka-posle-remonta-sovety",
-    title: "Уборка после ремонта: что нужно знать",
-    excerpt: "Строительная пыль, цемент, краска — как с этим справиться и когда лучше звонить профессионалам.",
-    date: "20 марта 2025",
-    category: "После ремонта",
-    readTime: "6 мин",
-  },
-  {
-    slug: "chistyy-ofis-produktivnost",
-    title: "Чистый офис повышает продуктивность на 15%",
-    excerpt: "Исследования подтверждают: порядок на рабочем месте напрямую влияет на концентрацию и результаты.",
-    date: "12 марта 2025",
-    category: "Офисы",
-    readTime: "3 мин",
-  },
-];
 
 export default function BlogPage() {
   return (
@@ -69,7 +35,7 @@ export default function BlogPage() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {posts.map((post) => (
+            {blogPosts.map((post) => (
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
