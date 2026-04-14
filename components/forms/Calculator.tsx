@@ -4,16 +4,17 @@ import { useState } from "react";
 import { ChevronRight, Calculator as CalcIcon } from "lucide-react";
 import Button from "@/components/ui/Button";
 
-type ServiceType = "standard" | "general" | "after-repair" | "office";
+type ServiceType = "standard" | "general" | "after-repair" | "office" | "dry-cleaning";
 
 const serviceTypes: { value: ServiceType; label: string; basePrice: number; unit: string }[] = [
   { value: "standard", label: "Стандартная уборка", basePrice: 1.8, unit: "BYN/м²" },
   { value: "general", label: "Генеральная уборка", basePrice: 2.8, unit: "BYN/м²" },
   { value: "after-repair", label: "После ремонта", basePrice: 3.5, unit: "BYN/м²" },
   { value: "office", label: "Уборка офиса", basePrice: 1.5, unit: "BYN/м²" },
+  { value: "dry-cleaning", label: "Химчистка", basePrice: 7, unit: "BYN/м²" },
 ];
 
-const extras: { value: string; label: string; price: number }[] = [
+const cleaningExtras: { value: string; label: string; price: number }[] = [
   { value: "windows", label: "Мойка окон", price: 12 },
   { value: "fridge", label: "Холодильник изнутри", price: 15 },
   { value: "oven", label: "Духовка", price: 12 },
@@ -21,12 +22,36 @@ const extras: { value: string; label: string; price: number }[] = [
   { value: "ironing", label: "Глажка белья (1 час)", price: 18 },
 ];
 
+const dryCleaningExtras: { value: string; label: string; price: number }[] = [
+  { value: "sofa2", label: "Диван двухместный", price: 60 },
+  { value: "sofa3", label: "Трехместный", price: 75 },
+  { value: "sofa4", label: "Четырехместный (угловой)", price: 85 },
+  { value: "sofa5", label: "5-6 местный угловой", price: 100 },
+  { value: "mat1_1", label: "Матрас 1-сп (1 сторона)", price: 35 },
+  { value: "mat1_2", label: "Матрас 1-сп (2 стороны)", price: 60 },
+  { value: "mat2_1", label: "Матрас 2-сп (1 сторона)", price: 50 },
+  { value: "mat2_2", label: "Матрас 2-сп (2 стороны)", price: 100 },
+  { value: "chair", label: "Кресло", price: 35 },
+  { value: "stool", label: "Стул, табурет", price: 12 },
+  { value: "comp_chair", label: "Стул компьютерный", price: 15 },
+  { value: "headboard", label: "Изголовье кровати", price: 50 },
+  { value: "pouf", label: "Пуф", price: 15 },
+  { value: "kitchen", label: "Кухонный уголок", price: 50 },
+];
+
 function calcPrice(service: ServiceType, area: number, selectedExtras: string[]): number {
   const svc = serviceTypes.find((s) => s.value === service)!;
-  const base = Math.max(svc.basePrice * area, 69);
-  const extrasTotal = extras
+  let base = svc.basePrice * area;
+  
+  if (service !== "dry-cleaning") {
+    base = Math.max(base, 69);
+  }
+  
+  const currentExtras = service === "dry-cleaning" ? dryCleaningExtras : cleaningExtras;
+  const extrasTotal = currentExtras
     .filter((e) => selectedExtras.includes(e.value))
     .reduce((sum, e) => sum + e.price, 0);
+    
   return Math.round(base + extrasTotal);
 }
 
@@ -70,7 +95,12 @@ export default function Calculator({ onOrder }: CalculatorProps) {
               <button
                 key={s.value}
                 type="button"
-                onClick={() => setService(s.value)}
+                onClick={() => {
+                  if (s.value === "dry-cleaning" && area === 50) setArea(0);
+                  if (s.value !== "dry-cleaning" && area === 0) setArea(50);
+                  setService(s.value);
+                  setSelectedExtras([]);
+                }}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all duration-200 cursor-pointer text-left ${
                   service === s.value
                     ? "border-[#00B4D8] bg-[#F0FDFF] text-[#0077B6]"
@@ -87,20 +117,20 @@ export default function Calculator({ onOrder }: CalculatorProps) {
         {/* Area */}
         <div>
           <label className="block text-sm font-medium text-[#475569] mb-2">
-            Площадь помещения: <span className="text-[#0077B6] font-bold">{area} м²</span>
+            {service === "dry-cleaning" ? "Площадь ковров" : "Площадь помещения"}: <span className="text-[#0077B6] font-bold">{area} м²</span>
           </label>
           <input
             type="range"
-            min={20}
+            min={service === "dry-cleaning" ? 0 : 20}
             max={300}
             step={5}
             value={area}
             onChange={(e) => setArea(Number(e.target.value))}
             className="w-full h-2 bg-[#E2EDF4] rounded-full appearance-none cursor-pointer accent-[#00B4D8]"
-            aria-label="Площадь помещения"
+            aria-label={service === "dry-cleaning" ? "Площадь ковров" : "Площадь помещения"}
           />
           <div className="flex justify-between text-xs text-[#94A3B8] mt-1">
-            <span>20 м²</span>
+            <span>{service === "dry-cleaning" ? "0 м²" : "20 м²"}</span>
             <span>300 м²</span>
           </div>
         </div>
@@ -108,10 +138,10 @@ export default function Calculator({ onOrder }: CalculatorProps) {
         {/* Extras */}
         <div>
           <label className="block text-sm font-medium text-[#475569] mb-2">
-            Дополнительные услуги
+            {service === "dry-cleaning" ? "Предметы для химчистки" : "Дополнительные услуги"}
           </label>
           <div className="flex flex-wrap gap-2">
-            {extras.map((e) => (
+            {(service === "dry-cleaning" ? dryCleaningExtras : cleaningExtras).map((e) => (
               <button
                 key={e.value}
                 type="button"
@@ -141,7 +171,10 @@ export default function Calculator({ onOrder }: CalculatorProps) {
         <Button
           className="w-full"
           size="lg"
-          onClick={() => onOrder?.(service, price)}
+          onClick={() => {
+            onOrder?.(service, price);
+            document.getElementById("booking")?.scrollIntoView({ behavior: "smooth" });
+          }}
         >
           Заказать за {price} BYN
           <ChevronRight size={18} className="ml-1" />

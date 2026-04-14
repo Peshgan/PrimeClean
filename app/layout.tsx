@@ -72,7 +72,7 @@ const schemaOrg = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ru" className={`${inter.variable} ${montserrat.variable}`}>
+    <html lang="ru" className={`${inter.variable} ${montserrat.variable}`} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
