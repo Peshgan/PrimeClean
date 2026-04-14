@@ -12,7 +12,6 @@ const services = [
   { value: "generalnaya-uborka", label: "Генеральная уборка" },
   { value: "uborka-posle-remonta", label: "Уборка после ремонта" },
   { value: "uborka-doma", label: "Уборка дома" },
-  { value: "khimchistka-kovrov", label: "Химчистка ковров" },
 ];
 
 const initialState: BookingFormState = { success: false, message: "" };

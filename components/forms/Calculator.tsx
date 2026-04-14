@@ -4,14 +4,13 @@ import { useState } from "react";
 import { ChevronRight, Calculator as CalcIcon } from "lucide-react";
 import Button from "@/components/ui/Button";
 
-type ServiceType = "standard" | "general" | "after-repair" | "office" | "carpet";
+type ServiceType = "standard" | "general" | "after-repair" | "office";
 
 const serviceTypes: { value: ServiceType; label: string; basePrice: number; unit: string }[] = [
   { value: "standard", label: "Стандартная уборка", basePrice: 1.8, unit: "BYN/м²" },
   { value: "general", label: "Генеральная уборка", basePrice: 2.8, unit: "BYN/м²" },
   { value: "after-repair", label: "После ремонта", basePrice: 3.5, unit: "BYN/м²" },
   { value: "office", label: "Уборка офиса", basePrice: 1.5, unit: "BYN/м²" },
-  { value: "carpet", label: "Химчистка ковров", basePrice: 18, unit: "BYN/м²" },
 ];
 
 const extras: { value: string; label: string; price: number }[] = [

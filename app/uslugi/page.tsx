@@ -6,7 +6,7 @@ import { services } from "@/lib/data/services";
 export const metadata: Metadata = {
   title: "Услуги клининга в Минске — уборка квартир, офисов, домов",
   description:
-    "Все услуги клининговой компании PrimeClean в Минске. Уборка квартир, офисов, генеральная уборка, уборка после ремонта, химчистка ковров. Цены и запись онлайн.",
+    "Все услуги клининговой компании PrimeClean в Минске. Уборка квартир, офисов, генеральная уборка, уборка после ремонта. Цены и запись онлайн.",
 };
 
 const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
