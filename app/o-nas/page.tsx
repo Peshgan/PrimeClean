@@ -8,13 +8,6 @@ export const metadata: Metadata = {
     "О клининговой компании PrimeClean в Минске. Команда 30+ специалистов, более 3500 убранных объектов, сертифицированная химия и гарантия качества с 2019 года.",
 };
 
-const team = [
-  { name: "Анастасия Власова", role: "Директор", initials: "АВ", years: "6 лет в клининге" },
-  { name: "Екатерина Морозова", role: "Старший менеджер", initials: "ЕМ", years: "4 года в компании" },
-  { name: "Ольга Семёнова", role: "Бригадир", initials: "ОС", years: "5 лет опыта" },
-  { name: "Наталья Кузнецова", role: "Бригадир", initials: "НК", years: "3 года в компании" },
-];
-
 const milestones = [
   { year: "2019", event: "Основание компании. Первые 50 клиентов." },
   { year: "2020", event: "Расширение до 10 специалистов. Запуск офисного направления." },
@@ -110,27 +103,6 @@ export default function AboutPage() {
                   <span className="text-xs font-semibold text-[#00B4D8]">{m.year}</span>
                   <p className="text-[#475569] text-sm mt-1">{m.event}</p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Team */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#1A2332] mb-10 text-center">
-            Наша команда
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-            {team.map((member) => (
-              <div key={member.name} className="text-center">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#00B4D8] to-[#0077B6] text-white text-xl font-bold flex items-center justify-center mx-auto mb-3">
-                  {member.initials}
-                </div>
-                <div className="font-semibold text-[#1A2332] text-sm">{member.name}</div>
-                <div className="text-xs text-[#0077B6] mb-1">{member.role}</div>
-                <div className="text-xs text-[#94A3B8]">{member.years}</div>
               </div>
             ))}
           </div>
