@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronRight, Calculator as CalcIcon } from "lucide-react";
 import Button from "@/components/ui/Button";
 
-type ServiceType = "standard" | "general" | "after-repair" | "office" | "dry-cleaning";
+type ServiceType = "standard" | "general" | "after-repair" | "office" | "dry-cleaning" | "specialized";
 
 const serviceTypes: { value: ServiceType; label: string; basePrice: number; unit: string }[] = [
   { value: "standard", label: "Стандартная уборка", basePrice: 1.8, unit: "BYN/м²" },
@@ -12,6 +12,7 @@ const serviceTypes: { value: ServiceType; label: string; basePrice: number; unit
   { value: "after-repair", label: "После ремонта", basePrice: 3.5, unit: "BYN/м²" },
   { value: "office", label: "Уборка офиса", basePrice: 1.5, unit: "BYN/м²" },
   { value: "dry-cleaning", label: "Химчистка", basePrice: 7, unit: "BYN/м²" },
+  { value: "specialized", label: "Спец. уборка", basePrice: 0, unit: "индивидуально" },
 ];
 
 const cleaningExtras: { value: string; label: string; price: number }[] = [
@@ -40,6 +41,8 @@ const dryCleaningExtras: { value: string; label: string; price: number }[] = [
 ];
 
 function calcPrice(service: ServiceType, area: number, selectedExtras: string[]): number {
+  if (service === "specialized") return 0;
+
   const svc = serviceTypes.find((s) => s.value === service)!;
   let base = svc.basePrice * area;
   
@@ -115,56 +118,66 @@ export default function Calculator({ onOrder }: CalculatorProps) {
         </div>
 
         {/* Area */}
-        <div>
-          <label className="block text-sm font-medium text-[#475569] mb-2">
-            {service === "dry-cleaning" ? "Площадь ковров" : "Площадь помещения"}: <span className="text-[#0077B6] font-bold">{area} м²</span>
-          </label>
-          <input
-            type="range"
-            min={service === "dry-cleaning" ? 0 : 20}
-            max={300}
-            step={5}
-            value={area}
-            onChange={(e) => setArea(Number(e.target.value))}
-            className="w-full h-2 bg-[#E2EDF4] rounded-full appearance-none cursor-pointer accent-[#00B4D8]"
-            aria-label={service === "dry-cleaning" ? "Площадь ковров" : "Площадь помещения"}
-          />
-          <div className="flex justify-between text-xs text-[#94A3B8] mt-1">
-            <span>{service === "dry-cleaning" ? "0 м²" : "20 м²"}</span>
-            <span>300 м²</span>
+        {service !== "specialized" && (
+          <div>
+            <label className="block text-sm font-medium text-[#475569] mb-2">
+              {service === "dry-cleaning" ? "Площадь ковров" : "Площадь помещения"}: <span className="text-[#0077B6] font-bold">{area} м²</span>
+            </label>
+            <input
+              type="range"
+              min={service === "dry-cleaning" ? 0 : 20}
+              max={300}
+              step={5}
+              value={area}
+              onChange={(e) => setArea(Number(e.target.value))}
+              className="w-full h-2 bg-[#E2EDF4] rounded-full appearance-none cursor-pointer accent-[#00B4D8]"
+              aria-label={service === "dry-cleaning" ? "Площадь ковров" : "Площадь помещения"}
+            />
+            <div className="flex justify-between text-xs text-[#94A3B8] mt-1">
+              <span>{service === "dry-cleaning" ? "0 м²" : "20 м²"}</span>
+              <span>300 м²</span>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Extras */}
-        <div>
-          <label className="block text-sm font-medium text-[#475569] mb-2">
-            {service === "dry-cleaning" ? "Предметы для химчистки" : "Дополнительные услуги"}
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {(service === "dry-cleaning" ? dryCleaningExtras : cleaningExtras).map((e) => (
-              <button
-                key={e.value}
-                type="button"
-                onClick={() => toggleExtra(e.value)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all duration-200 cursor-pointer ${
-                  selectedExtras.includes(e.value)
-                    ? "border-[#00C9A7] bg-[#E6FFF9] text-[#00875A]"
-                    : "border-[#E2EDF4] text-[#475569] hover:border-[#00B4D8]/50"
-                }`}
-              >
-                {e.label} +{e.price} BYN
-              </button>
-            ))}
+        {service !== "specialized" && (
+          <div>
+            <label className="block text-sm font-medium text-[#475569] mb-2">
+              {service === "dry-cleaning" ? "Предметы для химчистки" : "Дополнительные услуги"}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {(service === "dry-cleaning" ? dryCleaningExtras : cleaningExtras).map((e) => (
+                <button
+                  key={e.value}
+                  type="button"
+                  onClick={() => toggleExtra(e.value)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all duration-200 cursor-pointer ${
+                    selectedExtras.includes(e.value)
+                      ? "border-[#00C9A7] bg-[#E6FFF9] text-[#00875A]"
+                      : "border-[#E2EDF4] text-[#475569] hover:border-[#00B4D8]/50"
+                  }`}
+                >
+                  {e.label} +{e.price} BYN
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Result */}
         <div className="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] rounded-2xl p-4 text-white">
           <p className="text-sm opacity-80 mb-1">Примерная стоимость</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold">{price}</span>
-            <span className="text-lg opacity-80">BYN</span>
-          </div>
+          {service === "specialized" ? (
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold">Договорная</span>
+            </div>
+          ) : (
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-bold">{price}</span>
+              <span className="text-lg opacity-80">BYN</span>
+            </div>
+          )}
           <p className="text-xs opacity-70 mt-1">Точная цена — после осмотра</p>
         </div>
 

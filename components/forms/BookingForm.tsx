@@ -13,6 +13,7 @@ const services = [
   { value: "uborka-posle-remonta", label: "Уборка после ремонта" },
   { value: "uborka-doma", label: "Уборка дома" },
   { value: "khimchistka", label: "Химчистка" },
+  { value: "specializirovannaya-uborka", label: "Спец. уборка" },
 ];
 
 const initialState: BookingFormState = { success: false, message: "" };

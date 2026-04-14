@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Home, Building2, Sparkles, Hammer, Trees, Waves, ArrowRight, Clock } from "lucide-react";
+import { Home, Building2, Sparkles, Hammer, Trees, Waves, ShieldAlert, ArrowRight, Clock } from "lucide-react";
 import { services } from "@/lib/data/services";
 
 export const metadata: Metadata = {
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  Home, Building2, Sparkles, Hammer, Trees, Waves,
+  Home, Building2, Sparkles, Hammer, Trees, Waves, ShieldAlert,
 };
 
 export default function ServicesPage() {
@@ -76,7 +76,9 @@ export default function ServicesPage() {
                       {service.description}
                     </p>
                     <div className="flex items-center justify-between mt-auto">
-                      <span className="font-bold text-[#0077B6]">от {service.priceFrom} BYN</span>
+                      <span className="font-bold text-[#0077B6]">
+                        {service.priceFrom === 0 ? "По договоренности" : `от ${service.priceFrom} BYN`}
+                      </span>
                       <span className="flex items-center gap-1 text-[#00B4D8] text-sm font-medium group-hover:gap-2 transition-all">
                         Подробнее <ArrowRight size={14} />
                       </span>

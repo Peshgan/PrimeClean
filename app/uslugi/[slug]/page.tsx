@@ -98,8 +98,14 @@ export default async function ServicePage({
               </h1>
               <p className="text-lg text-[#475569] leading-relaxed">{service.longDescription}</p>
               <div className="flex items-baseline gap-2">
-                <span className="text-4xl font-bold text-[#0077B6]">от {service.priceFrom}</span>
-                <span className="text-xl text-[#475569]">BYN</span>
+                {service.priceFrom === 0 ? (
+                  <span className="text-3xl font-bold text-[#0077B6]">Договорная</span>
+                ) : (
+                  <>
+                    <span className="text-4xl font-bold text-[#0077B6]">от {service.priceFrom}</span>
+                    <span className="text-xl text-[#475569]">BYN</span>
+                  </>
+                )}
               </div>
             </div>
             <div className="rounded-3xl overflow-hidden shadow-xl aspect-[4/3]">
@@ -158,8 +164,14 @@ export default async function ServicePage({
                         <div className="text-sm text-[#94A3B8]">{tier.area}</div>
                       </div>
                       <div className="text-right">
-                        <span className="text-2xl font-bold text-[#0077B6]">{tier.price}</span>
-                        <span className="text-sm text-[#94A3B8] ml-1">BYN</span>
+                        {tier.price === 0 ? (
+                          <span className="text-xl font-bold text-[#0077B6]">Договорная</span>
+                        ) : (
+                          <>
+                            <span className="text-2xl font-bold text-[#0077B6]">{tier.price}</span>
+                            <span className="text-sm text-[#94A3B8] ml-1">BYN</span>
+                          </>
+                        )}
                       </div>
                     </div>
                     <ul className="flex flex-wrap gap-2">

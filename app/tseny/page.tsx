@@ -82,7 +82,9 @@ export default function PricesPage() {
                       </div>
                       <div className="text-sm text-[#94A3B8] mb-3">{tier.area}</div>
                       <div className="text-2xl font-bold text-[#0077B6] mb-3">
-                        {tier.price} <span className="text-sm font-normal text-[#94A3B8]">BYN</span>
+                        {tier.price === 0 ? "Договорная" : (
+                          <>от {tier.price} <span className="text-sm font-normal text-[#94A3B8]">BYN</span></>
+                        )}
                       </div>
                       <ul className="space-y-1">
                         {tier.features.map((f) => (

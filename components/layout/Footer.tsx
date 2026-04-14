@@ -8,6 +8,7 @@ const serviceLinks = [
   { label: "После ремонта", href: "/uslugi/uborka-posle-remonta-minsk" },
   { label: "Уборка домов", href: "/uslugi/uborka-domov-minsk" },
   { label: "Химчистка", href: "/uslugi/khimchistka-minsk" },
+  { label: "Спец. уборка", href: "/uslugi/specializirovannaya-uborka-minsk" },
 ];
 
 const companyLinks = [
