@@ -90,7 +90,7 @@ export default function HeroSection() {
           <div className="relative">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/5] lg:aspect-[3/4]">
               <img
-                src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80"
+                src="https://res.cloudinary.com/dkbltmyul/image/upload/v1776190522/uborka_kvartir_v_minske_primeclean_vuldhk.jpg"
                 alt="Профессиональная уборка квартиры в Минске — PrimeClean"
                 className="w-full h-full object-cover"
                 loading="eager"

@@ -25,7 +25,7 @@ export const services: Service[] = [
     longDescription:
       "Наша команда выполнит уборку вашей квартиры быстро и качественно. Используем профессиональную химию, безопасную для детей и домашних животных. Гарантируем результат — если что-то не устроит, вернёмся и всё исправим бесплатно.",
     icon: "Home",
-    image: "/images/services/uborka-kvartir-minsk.jpg",
+    image: "https://res.cloudinary.com/dkbltmyul/image/upload/v1776189687/uborka-kvartir-minsk_puttkr.jpg",
     priceFrom: 79,
     duration: "2–4 часа",
     metaTitle: "Уборка квартир в Минске — от 79 BYN | PrimeClean",
