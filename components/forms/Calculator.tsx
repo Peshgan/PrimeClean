@@ -16,28 +16,28 @@ const serviceTypes: { value: ServiceType; label: string; basePrice: number; unit
 ];
 
 const cleaningExtras: { value: string; label: string; price: number }[] = [
-  { value: "windows", label: "Мойка окон", price: 12 },
-  { value: "fridge", label: "Холодильник изнутри", price: 15 },
-  { value: "oven", label: "Духовка", price: 12 },
-  { value: "balcony", label: "Балкон / лоджия", price: 20 },
-  { value: "ironing", label: "Глажка белья (1 час)", price: 18 },
+  { value: "windows", label: "Мойка окон", price: 18 },
+  { value: "fridge", label: "Холодильник изнутри", price: 23 },
+  { value: "oven", label: "Духовка", price: 18 },
+  { value: "balcony", label: "Балкон / лоджия", price: 30 },
+  { value: "ironing", label: "Глажка белья (1 час)", price: 27 },
 ];
 
 const dryCleaningExtras: { value: string; label: string; price: number }[] = [
-  { value: "sofa2", label: "Диван двухместный", price: 60 },
-  { value: "sofa3", label: "Трехместный", price: 75 },
-  { value: "sofa4", label: "Четырехместный (угловой)", price: 85 },
-  { value: "sofa5", label: "5-6 местный угловой", price: 100 },
-  { value: "mat1_1", label: "Матрас 1-сп (1 сторона)", price: 35 },
-  { value: "mat1_2", label: "Матрас 1-сп (2 стороны)", price: 60 },
-  { value: "mat2_1", label: "Матрас 2-сп (1 сторона)", price: 50 },
-  { value: "mat2_2", label: "Матрас 2-сп (2 стороны)", price: 100 },
-  { value: "chair", label: "Кресло", price: 35 },
-  { value: "stool", label: "Стул, табурет", price: 12 },
-  { value: "comp_chair", label: "Стул компьютерный", price: 15 },
-  { value: "headboard", label: "Изголовье кровати", price: 50 },
-  { value: "pouf", label: "Пуф", price: 15 },
-  { value: "kitchen", label: "Кухонный уголок", price: 50 },
+  { value: "sofa2", label: "Диван двухместный", price: 90 },
+  { value: "sofa3", label: "Трехместный", price: 113 },
+  { value: "sofa4", label: "Четырехместный (угловой)", price: 128 },
+  { value: "sofa5", label: "5-6 местный угловой", price: 150 },
+  { value: "mat1_1", label: "Матрас 1-сп (1 сторона)", price: 53 },
+  { value: "mat1_2", label: "Матрас 1-сп (2 стороны)", price: 90 },
+  { value: "mat2_1", label: "Матрас 2-сп (1 сторона)", price: 75 },
+  { value: "mat2_2", label: "Матрас 2-сп (2 стороны)", price: 150 },
+  { value: "chair", label: "Кресло", price: 53 },
+  { value: "stool", label: "Стул, табурет", price: 18 },
+  { value: "comp_chair", label: "Стул компьютерный", price: 23 },
+  { value: "headboard", label: "Изголовье кровати", price: 75 },
+  { value: "pouf", label: "Пуф", price: 23 },
+  { value: "kitchen", label: "Кухонный уголок", price: 75 },
 ];
 
 function calcPrice(service: ServiceType, area: number, selectedExtras: string[]): number {
