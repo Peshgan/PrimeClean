@@ -176,7 +176,7 @@ export default function Calculator({ onOrder }: CalculatorProps) {
             document.getElementById("booking")?.scrollIntoView({ behavior: "smooth" });
           }}
         >
-          Заказать за {price} BYN
+        Заказать
           <ChevronRight size={18} className="ml-1" />
         </Button>
       </div>
