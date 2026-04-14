@@ -58,7 +58,7 @@ export default function BookingForm({ preselectedService, compact = false }: Boo
           {state.errors?.name && (
             <p className={errorClass}>
               <AlertCircle size={13} />
-              {state.errors.name[0]}
+              {state.errors?.name?.[0]}
             </p>
           )}
         </div>
@@ -80,7 +80,7 @@ export default function BookingForm({ preselectedService, compact = false }: Boo
           {state.errors?.phone && (
             <p className={errorClass}>
               <AlertCircle size={13} />
-              {state.errors.phone[0]}
+              {state.errors?.phone?.[0]}
             </p>
           )}
         </div>
@@ -105,7 +105,7 @@ export default function BookingForm({ preselectedService, compact = false }: Boo
           {state.errors?.service && (
             <p className={errorClass}>
               <AlertCircle size={13} />
-              {state.errors.service[0]}
+              {state.errors?.service?.[0]}
             </p>
           )}
         </div>

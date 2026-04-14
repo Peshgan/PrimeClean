@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Home, Building2, Sparkles, Hammer, Trees, Waves, ArrowRight, Clock } from "lucide-react";
 import { services } from "@/lib/data/services";
@@ -49,12 +50,13 @@ export default function ServicesPage() {
                   href={`/uslugi/${service.slug}`}
                   className="group flex flex-col bg-[#F0FDFF] rounded-3xl overflow-hidden border border-[#E2EDF4] hover:border-[#00B4D8]/40 hover:shadow-xl hover:shadow-[#00B4D8]/8 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                 >
-                  <div className="h-48 overflow-hidden">
-                    <img
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
                       src={service.image}
                       alt={service.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
                   <div className="p-6 flex flex-col flex-1">

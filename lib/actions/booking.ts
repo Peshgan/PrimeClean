@@ -24,11 +24,11 @@ export async function createBooking(
   formData: FormData
 ): Promise<BookingFormState> {
   const raw = {
-    name: formData.get("name") as string,
-    phone: formData.get("phone") as string,
-    service: formData.get("service") as string,
-    area: formData.get("area") as string | undefined,
-    comment: formData.get("comment") as string | undefined,
+    name: formData.get("name")?.toString() || "",
+    phone: formData.get("phone")?.toString() || "",
+    service: formData.get("service")?.toString() || "",
+    area: formData.get("area")?.toString() || undefined,
+    comment: formData.get("comment")?.toString() || undefined,
   };
 
   const parsed = BookingSchema.safeParse(raw);

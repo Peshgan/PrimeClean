@@ -25,7 +25,7 @@ export const services: Service[] = [
     longDescription:
       "Наша команда выполнит уборку вашей квартиры быстро и качественно. Используем профессиональную химию, безопасную для детей и домашних животных. Гарантируем результат — если что-то не устроит, вернёмся и всё исправим бесплатно.",
     icon: "Home",
-    image: "/images/services/uborka-kvartir-minsk1.jpg",
+    image: "/images/services/uborka-kvartir-minsk.jpg",
     priceFrom: 79,
     duration: "2–4 часа",
     metaTitle: "Уборка квартир в Минске — от 79 BYN | PrimeClean",
@@ -66,7 +66,7 @@ export const services: Service[] = [
     longDescription:
       "Обеспечим чистоту и порядок в вашем офисе. Можем работать в нерабочие часы — вечером или в выходные. Составляем индивидуальный график и чек-лист под ваши задачи.",
     icon: "Building2",
-    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+    image: "/images/services/klining-ofisov-minsk.jpg",
     priceFrom: 120,
     duration: "по договорённости",
     metaTitle: "Клининг офисов в Минске — от 120 BYN | PrimeClean",
@@ -106,7 +106,7 @@ export const services: Service[] = [
     longDescription:
       "Генеральная уборка включает всё то, до чего не доходят руки при обычной уборке: мойку окон, чистку внутри шкафов и под мебелью, обработку труднодоступных мест. Идеально 1–2 раза в год.",
     icon: "Sparkles",
-    image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80",
+    image: "/images/services/generalnaya-uborka-minsk.jpg",
     priceFrom: 149,
     duration: "4–8 часов",
     metaTitle: "Генеральная уборка квартиры в Минске — от 149 BYN | PrimeClean",
@@ -147,7 +147,7 @@ export const services: Service[] = [
     longDescription:
       "Уборка после ремонта — это специализированная работа. Строительная пыль проникает везде, цемент и краска требуют особых средств. Наши специалисты знают, как справиться с любыми загрязнениями быстро и без повреждений поверхностей.",
     icon: "Hammer",
-    image: "https://images.unsplash.com/photo-1503174971373-b1f69850bded?w=800&q=80",
+    image: "/images/services/uborka-posle-remonta-minsk.jpg",
     priceFrom: 199,
     duration: "5–10 часов",
     metaTitle: "Уборка после ремонта в Минске — от 199 BYN | PrimeClean",
@@ -188,7 +188,7 @@ export const services: Service[] = [
     longDescription:
       "Уборка частного дома требует больше времени и специализированного оборудования. Мы работаем с домами любой площади, включая мойку фасадных окон, уборку подвала и гаража по запросу.",
     icon: "Trees",
-    image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&q=80",
+    image: "/images/services/uborka-domov-minsk.jpg",
     priceFrom: 259,
     duration: "4–10 часов",
     metaTitle: "Уборка домов и коттеджей в Минске — от 259 BYN | PrimeClean",

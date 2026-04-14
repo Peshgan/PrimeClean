@@ -51,7 +51,7 @@ export default function BlogPage() {
           <nav aria-label="Хлебные крошки" className="mb-6">
             <ol className="flex items-center gap-2 text-sm text-[#94A3B8]">
               <li><Link href="/" className="hover:text-[#0077B6] transition-colors">Главная</Link></li>
-              <li>/</li>
+              <li aria-hidden="true">/</li>
               <li className="text-[#1A2332] font-medium">Блог</li>
             </ol>
           </nav>
