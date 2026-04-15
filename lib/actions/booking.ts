@@ -41,14 +41,24 @@ export async function createBooking(
     };
   }
 
-  // В продакшене: отправить email через Resend и сохранить в БД
-  // Для демо — симулируем успех
-  await new Promise((resolve) => setTimeout(resolve, 800));
+  try {
+    const res = await fetch(`${process.env.BACKEND_URL}/api/bookings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(parsed.data),
+    });
 
-  console.log("New booking:", parsed.data);
+    if (!res.ok) throw new Error("Backend error");
 
-  return {
-    success: true,
-    message: "Заявка принята! Перезвоним в течение 15 минут.",
-  };
+    return {
+      success: true,
+      message: "Заявка принята! Перезвоним в течение 15 минут.",
+    };
+  } catch (error) {
+    console.error("Ошибка при отправке заявки:", error);
+    return {
+      success: false,
+      message: "Не удалось отправить заявку. Попробуйте позже.",
+    };
+  }
 }
