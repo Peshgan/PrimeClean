@@ -48,7 +48,10 @@ export async function createBooking(
       body: JSON.stringify(parsed.data),
     });
 
-    if (!res.ok) throw new Error("Backend error");
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Backend error ${res.status}: ${errorText}`);
+    }
 
     return {
       success: true,
