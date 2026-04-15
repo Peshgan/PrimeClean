@@ -51,7 +51,7 @@ export default function Footer() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
               </a>
               <a
-                href="https://t.me/primeclean_by"
+                href="https://t.me/primeclean_bybot/website"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center hover:bg-[#00B4D8] transition-colors cursor-pointer"
@@ -102,11 +102,11 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href="tel:+375291234567"
+                  href="tel:+375444789360"
                   className="flex items-start gap-3 text-[#94A3B8] hover:text-white text-sm transition-colors cursor-pointer"
                 >
                   <Phone size={15} className="mt-0.5 flex-shrink-0 text-[#00B4D8]" />
-                  +375 (29) 123-45-67
+                  +375 (44) 478-93-60
                 </a>
               </li>
               <li>

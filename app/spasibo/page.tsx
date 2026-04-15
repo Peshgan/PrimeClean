@@ -32,7 +32,7 @@ export default function ThanksPage() {
           </div>
           <div className="flex items-center gap-3 text-sm text-[#475569]">
             <Phone size={16} className="text-[#00B4D8] flex-shrink-0" />
-            <span>Или позвоните сами: <a href="tel:+375291234567" className="font-semibold text-[#0077B6] hover:underline">+375 (29) 123-45-67</a></span>
+            <span>Или позвоните сами: <a href="tel:+375444789360" className="font-semibold text-[#0077B6] hover:underline">+375 (44) 478-93-60</a></span>
           </div>
         </div>
 

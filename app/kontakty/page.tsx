@@ -40,12 +40,12 @@ export default function ContactsPage() {
               <h2 className="text-2xl font-bold text-[#1A2332]">Как с нами связаться</h2>
 
               <div className="space-y-4">
-                <a href="tel:+375291234567" className="flex items-start gap-4 p-4 bg-[#F0FDFF] rounded-2xl border border-[#E2EDF4] hover:border-[#00B4D8]/40 transition-colors cursor-pointer group">
+                <a href="tel:+375444789360" className="flex items-start gap-4 p-4 bg-[#F0FDFF] rounded-2xl border border-[#E2EDF4] hover:border-[#00B4D8]/40 transition-colors cursor-pointer group">
                   <div className="w-11 h-11 rounded-xl bg-white border border-[#E2EDF4] flex items-center justify-center flex-shrink-0 group-hover:bg-[#00B4D8] group-hover:border-[#00B4D8] transition-all">
                     <Phone size={18} className="text-[#00B4D8] group-hover:text-white transition-colors" />
                   </div>
                   <div>
-                    <div className="font-semibold text-[#1A2332]">+375 (29) 123-45-67</div>
+                    <div className="font-semibold text-[#1A2332]">+375 (44) 478-93-60</div>
                     <div className="text-sm text-[#94A3B8]">Звоните в любой день</div>
                   </div>
                 </a>
@@ -87,9 +87,9 @@ export default function ContactsPage() {
                 <h3 className="font-semibold text-[#1A2332] mb-3">Мессенджеры</h3>
                 <div className="flex gap-3">
                   {[
-                    { label: "Telegram", icon: Send, href: "https://t.me/primeclean_by" },
-                    { label: "Viber", icon: Phone, href: "viber://chat?number=%2B375291234567" },
-                    { label: "WhatsApp", icon: MessageCircle, href: "https://wa.me/375291234567" },
+                    { label: "Telegram", icon: Send, href: "https://t.me/primeclean_bybot/website" },
+                    { label: "Viber", icon: Phone, href: "viber://chat?number=%2B375444789360" },
+                    { label: "WhatsApp", icon: MessageCircle, href: "https://wa.me/375444789360" },
                   ].map((m) => {
                     const Icon = m.icon;
                     return (

@@ -426,7 +426,7 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="+375 (29) 123-45-67"
+              placeholder="+375 (44) 478-93-60"
               style={inputStyle}
             />
           </div>

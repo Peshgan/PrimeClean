@@ -78,11 +78,11 @@ export default function HeroSection() {
 
             {/* Phone */}
             <a
-              href="tel:+375291234567"
+              href="tel:+375444789360"
               className="inline-flex items-center gap-2 text-[#0077B6] font-semibold hover:text-[#00B4D8] transition-colors cursor-pointer"
             >
               <Phone size={18} />
-              +375 (29) 123-45-67
+              +375 (44) 478-93-60
             </a>
           </div>
 

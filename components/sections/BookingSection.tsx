@@ -36,8 +36,8 @@ export default function BookingSection() {
                   <Phone size={18} className="text-[#00B4D8]" />
                 </div>
                 <div>
-                  <a href="tel:+375291234567" className="font-semibold text-[#1A2332] text-sm hover:text-[#0077B6] transition-colors cursor-pointer">
-                    +375 (29) 123-45-67
+                  <a href="tel:+375444789360" className="font-semibold text-[#1A2332] text-sm hover:text-[#0077B6] transition-colors cursor-pointer">
+                    +375 (44) 478-93-60
                   </a>
                   <div className="text-[#94A3B8] text-sm">Пн–Пт 08:00–20:00, Сб–Вс 09:00–18:00</div>
                 </div>

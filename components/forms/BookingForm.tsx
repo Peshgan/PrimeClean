@@ -74,7 +74,7 @@ export default function BookingForm({ preselectedService, compact = false }: Boo
             id="booking-phone"
             name="phone"
             type="tel"
-            placeholder="+375 (29) 123-45-67"
+            placeholder="+375 (44) 478-93-60"
             autoComplete="tel"
             required
             className={inputClass}

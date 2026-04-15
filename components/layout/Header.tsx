@@ -113,11 +113,11 @@ export default function Header() {
             {/* Desktop CTA */}
             <div className="hidden lg:flex items-center gap-3">
               <a
-                href="tel:+375291234567"
+                href="tel:+375444789360"
                 className="flex items-center gap-2 text-sm font-medium text-[#475569] hover:text-[#0077B6] transition-colors cursor-pointer"
               >
                 <Phone size={15} />
-                +375 (29) 123-45-67
+                +375 (44) 478-93-60
               </a>
               <Link
                 href="#booking"
@@ -204,11 +204,11 @@ export default function Header() {
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#E2EDF4] space-y-3">
           <a
-            href="tel:+375291234567"
+            href="tel:+375444789360"
             className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-[#F0FDFF] text-[#0077B6] font-semibold text-sm hover:bg-[#E0F7FF] transition-colors cursor-pointer"
           >
             <Phone size={16} />
-            +375 (29) 123-45-67
+            +375 (44) 478-93-60
           </a>
           <Link
             href="#booking"

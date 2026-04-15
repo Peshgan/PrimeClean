@@ -267,7 +267,7 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
           }}
         >
           {[
-            { icon: "📞", label: "Телефон", value: "+375 (29) 123-45-67", href: "tel:+375291234567" },
+            { icon: "📞", label: "Телефон", value: "+375 (44) 478-93-60", href: "tel:+375444789360" },
             { icon: "✉️", label: "Email", value: "info@primeclean.by", href: "mailto:info@primeclean.by" },
             { icon: "📍", label: "Адрес", value: "ул. Немига, 5, Минск", href: undefined },
           ].map((c, i, arr) => (

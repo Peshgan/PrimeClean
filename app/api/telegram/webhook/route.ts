@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
           reply_markup: {
             inline_keyboard: [
               [{ text: "🧹 Открыть PrimeClean", web_app: { url: tmaUrl } }],
-              [{ text: "📞 Позвонить нам", url: "tel:+375291234567" }],
+              [{ text: "📞 Позвонить нам", url: "tel:+375444789360" }],
             ],
           },
         }
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
       await sendMessage(
         chatId,
         `📞 <b>Контакты PrimeClean</b>\n\n` +
-          `Телефон: <a href="tel:+375291234567">+375 (29) 123-45-67</a>\n` +
+          `Телефон: <a href="tel:+375444789360">+375 (44) 478-93-60</a>\n` +
           `Email: info@primeclean.by\n` +
           `Адрес: ул. Немига, 5, Минск\n\n` +
           `⏰ Режим работы:\n` +
