@@ -9,6 +9,9 @@ const BookingSchema = z.object({
     .min(7, "Введите корректный номер телефона")
     .max(20, "Слишком длинный номер"),
   service: z.string().min(1, "Выберите услугу"),
+  serviceSlug: z.string().default("unknown"),
+  bookingDate: z.string().default("В ближайшее время"),
+  bookingTime: z.string().default("Любое время"),
   area: z.string().optional(),
   comment: z.string().max(500).optional(),
 });
@@ -27,6 +30,9 @@ export async function createBooking(
     name: formData.get("name")?.toString() || "",
     phone: formData.get("phone")?.toString() || "",
     service: formData.get("service")?.toString() || "",
+    serviceSlug: formData.get("serviceSlug")?.toString() || formData.get("service")?.toString() || "unknown",
+    bookingDate: formData.get("bookingDate")?.toString() || "В ближайшее время",
+    bookingTime: formData.get("bookingTime")?.toString() || "Любое время",
     area: formData.get("area")?.toString() || undefined,
     comment: formData.get("comment")?.toString() || undefined,
   };
