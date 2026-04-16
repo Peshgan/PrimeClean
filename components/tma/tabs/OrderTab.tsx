@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { TelegramUser } from "@/types/telegram";
 import { services } from "@/lib/data/services";
 
@@ -11,8 +11,8 @@ interface OrderTabProps {
 }
 
 type Step = "calc" | "form" | "success";
-
 type ServiceType = "standard" | "general" | "after-repair" | "office" | "dry-cleaning" | "specialized";
+type ContactPreference = "callback" | "chat" | "";
 
 const SERVICE_TYPES = [
   { value: "standard" as ServiceType, label: "Стандартная уборка", basePrice: 1.8 },
@@ -23,22 +23,23 @@ const SERVICE_TYPES = [
   { value: "specialized" as ServiceType, label: "Спец. уборка", basePrice: 0 },
 ];
 
-const EXTRAS_CLEANING = [
-  { value: "windows", label: "Мойка окон", price: 18 },
+// Extras that support quantity > 1
+const EXTRAS_CLEANING: { value: string; label: string; price: number; hasQty?: boolean }[] = [
+  { value: "windows", label: "Мойка окон", price: 18, hasQty: true },
   { value: "fridge", label: "Холодильник изнутри", price: 23 },
   { value: "oven", label: "Духовка", price: 18 },
-  { value: "balcony", label: "Балкон", price: 30 },
+  { value: "balcony", label: "Балкон", price: 30, hasQty: true },
   { value: "ironing", label: "Глажка (1 ч)", price: 27 },
 ];
 
-const EXTRAS_DRY = [
-  { value: "sofa2", label: "Диван 2-местный", price: 75 },
-  { value: "sofa3", label: "Диван 3-местный", price: 95 },
-  { value: "sofa_corner", label: "Угловой диван", price: 120 },
-  { value: "mat1_1", label: "Матрас 1-сп (1 ст.)", price: 60 },
-  { value: "mat2_1", label: "Матрас 2-сп (1 ст.)", price: 90 },
-  { value: "chair", label: "Кресло", price: 45 },
-  { value: "stool", label: "Стул", price: 18 },
+const EXTRAS_DRY: { value: string; label: string; price: number; hasQty?: boolean }[] = [
+  { value: "sofa2", label: "Диван 2-местный", price: 75, hasQty: true },
+  { value: "sofa3", label: "Диван 3-местный", price: 95, hasQty: true },
+  { value: "sofa_corner", label: "Угловой диван", price: 120, hasQty: true },
+  { value: "mat1_1", label: "Матрас 1-сп (1 ст.)", price: 60, hasQty: true },
+  { value: "mat2_1", label: "Матрас 2-сп (1 ст.)", price: 90, hasQty: true },
+  { value: "chair", label: "Кресло", price: 45, hasQty: true },
+  { value: "stool", label: "Стул", price: 18, hasQty: true },
 ];
 
 const TIME_SLOTS = [
@@ -46,16 +47,20 @@ const TIME_SLOTS = [
   "13:00", "14:00", "15:00", "16:00", "17:00", "18:00",
 ];
 
-function calcPrice(service: ServiceType, area: number, extras: string[]): number {
+type ExtrasMap = Record<string, number>;
+
+function calcPrice(service: ServiceType, area: number, extras: ExtrasMap): number {
   if (service === "specialized") return 0;
   const svc = SERVICE_TYPES.find((s) => s.value === service)!;
   const base = Math.max(svc.basePrice * area, service === "dry-cleaning" ? 0 : 69);
   const list = service === "dry-cleaning" ? EXTRAS_DRY : EXTRAS_CLEANING;
-  const extrasTotal = list.filter((e) => extras.includes(e.value)).reduce((s, e) => s + e.price, 0);
+  const extrasTotal = list.reduce((sum, e) => {
+    const qty = extras[e.value] ?? 0;
+    return sum + e.price * qty;
+  }, 0);
   return Math.round(base + extrasTotal);
 }
 
-// Map service slug → service type
 function slugToServiceType(slug: string): ServiceType {
   if (slug.includes("generalnaya")) return "general";
   if (slug.includes("remont")) return "after-repair";
@@ -63,6 +68,128 @@ function slugToServiceType(slug: string): ServiceType {
   if (slug.includes("khim")) return "dry-cleaning";
   if (slug.includes("spet")) return "specialized";
   return "standard";
+}
+
+// Quantity stepper for extras
+function QtyStepper({
+  qty,
+  onChange,
+  label,
+  price,
+}: {
+  qty: number;
+  onChange: (n: number) => void;
+  label: string;
+  price: number;
+}) {
+  const active = qty > 0;
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: active ? "#ECFDF5" : "white",
+        border: `1.5px solid ${active ? "#00C9A7" : "#E2EDF4"}`,
+        borderRadius: 10,
+        padding: "7px 10px",
+        gap: 8,
+        transition: "all 0.15s",
+      }}
+    >
+      <span
+        style={{
+          fontSize: 12,
+          fontWeight: active ? 600 : 400,
+          color: active ? "#00875A" : "#475569",
+          flex: 1,
+        }}
+      >
+        {label} +{price} BYN
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+        {active && (
+          <>
+            <button
+              onClick={() => onChange(Math.max(0, qty - 1))}
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 6,
+                border: "1.5px solid #00C9A7",
+                background: "white",
+                color: "#00875A",
+                fontSize: 16,
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                lineHeight: 1,
+              }}
+            >
+              −
+            </button>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#00875A", minWidth: 16, textAlign: "center" }}>
+              {qty}
+            </span>
+          </>
+        )}
+        <button
+          onClick={() => onChange(qty + 1)}
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: 6,
+            border: "1.5px solid #00B4D8",
+            background: active ? "#00B4D8" : "white",
+            color: active ? "white" : "#00B4D8",
+            fontSize: 16,
+            fontWeight: 700,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            lineHeight: 1,
+          }}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Simple toggle for extras without qty
+function ExtraToggle({
+  active,
+  onToggle,
+  label,
+  price,
+}: {
+  active: boolean;
+  onToggle: () => void;
+  label: string;
+  price: number;
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      style={{
+        background: active ? "#ECFDF5" : "white",
+        border: `1.5px solid ${active ? "#00C9A7" : "#E2EDF4"}`,
+        borderRadius: 10,
+        padding: "7px 12px",
+        fontSize: 12,
+        fontWeight: active ? 600 : 400,
+        color: active ? "#00875A" : "#475569",
+        cursor: "pointer",
+        transition: "all 0.15s",
+      }}
+    >
+      {label} +{price} BYN
+    </button>
+  );
 }
 
 export default function OrderTab({ user, preselectedService, onServiceChange }: OrderTabProps) {
@@ -73,11 +200,12 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
     preselectedService ? slugToServiceType(preselectedService) : "standard"
   );
   const [area, setArea] = useState(50);
-  const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
+  const [extrasMap, setExtrasMap] = useState<ExtrasMap>({});
 
   // Form state
   const [name, setName] = useState(user?.first_name ?? "");
   const [phone, setPhone] = useState("");
+  const [contactPreference, setContactPreference] = useState<ContactPreference>("");
   const [serviceSlug, setServiceSlug] = useState(preselectedService || "uborka-kvartir-minsk");
   const [bookingDate, setBookingDate] = useState("");
   const [bookingTime, setBookingTime] = useState("");
@@ -85,13 +213,68 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [phoneRequested, setPhoneRequested] = useState(false);
 
-  const price = calcPrice(serviceType, area, selectedExtras);
+  const price = calcPrice(serviceType, area, extrasMap);
 
-  const toggleExtra = useCallback((val: string) => {
-    setSelectedExtras((prev) =>
-      prev.includes(val) ? prev.filter((e) => e !== val) : [...prev, val]
-    );
+  // Listen for Telegram contact_requested event
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const tg = (window as Window & { Telegram?: { WebApp?: { onEvent?: (event: string, cb: () => void) => void } } }).Telegram?.WebApp;
+    if (!tg?.onEvent) return;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = (e: any) => {
+      if (e?.phone_number) {
+        setPhone(`+${e.phone_number}`);
+        setPhoneRequested(true);
+      }
+    };
+    tg.onEvent("contactRequested", handler);
+    return () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (tg as any).offEvent?.("contactRequested", handler);
+    };
+  }, []);
+
+  const requestContact = () => {
+    const tg = (window as Window & { Telegram?: { WebApp?: { requestContact?: (cb: (ok: boolean, msg: unknown) => void) => void } } }).Telegram?.WebApp;
+    if (tg?.requestContact) {
+      tg.requestContact((ok, msg) => {
+        if (ok && msg) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const contact = (msg as any).contact;
+          if (contact?.phone_number) {
+            setPhone(`+${contact.phone_number}`);
+            setPhoneRequested(true);
+          }
+        }
+      });
+    }
+  };
+
+  const setExtraQty = useCallback((key: string, qty: number) => {
+    setExtrasMap((prev) => {
+      const next = { ...prev };
+      if (qty <= 0) {
+        delete next[key];
+      } else {
+        next[key] = qty;
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleExtra = useCallback((key: string) => {
+    setExtrasMap((prev) => {
+      const next = { ...prev };
+      if (next[key]) {
+        delete next[key];
+      } else {
+        next[key] = 1;
+      }
+      return next;
+    });
   }, []);
 
   const handleSubmit = async () => {
@@ -112,6 +295,12 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
 
     try {
       const svc = services.find((s) => s.slug === serviceSlug);
+
+      // Get TG user info
+      const tgUser = user;
+      const tgUsername = tgUser?.username ?? undefined;
+      const tgUserId = tgUser?.id ? String(tgUser.id) : undefined;
+
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,10 +313,13 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
           bookingTime,
           address: address.trim() || undefined,
           area,
-          extras: selectedExtras,
+          extras: extrasMap,
           priceEstimate: price > 0 ? price : undefined,
           comment: comment.trim() || undefined,
-          userTelegramId: user?.id ? String(user.id) : undefined,
+          userTelegramId: tgUserId,
+          tgUsername,
+          tgUserId,
+          contactPreference: contactPreference || "callback",
           source: "telegram",
         }),
       });
@@ -144,6 +336,8 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
 
   const todayStr = new Date().toISOString().split("T")[0];
 
+  const extrasListForType = serviceType === "dry-cleaning" ? EXTRAS_DRY : EXTRAS_CLEANING;
+
   // --- Success screen ---
   if (step === "success") {
     return (
@@ -156,8 +350,19 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
           minHeight: "70vh",
           padding: "24px 24px",
           textAlign: "center",
+          animation: "fadeUp 0.4s ease",
         }}
       >
+        <style>{`
+          @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes tabIn {
+            from { opacity: 0; transform: translateX(12px); }
+            to { opacity: 1; transform: translateX(0); }
+          }
+        `}</style>
         <div style={{ fontSize: 72, marginBottom: 20 }}>✅</div>
         <h2
           style={{
@@ -170,8 +375,11 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
         >
           Заявка принята!
         </h2>
-        <p style={{ color: "#475569", fontSize: 16, lineHeight: 1.6, marginBottom: 32 }}>
+        <p style={{ color: "#475569", fontSize: 16, lineHeight: 1.6, marginBottom: 8 }}>
           Мы свяжемся с вами в течение 15 минут в рабочее время, чтобы подтвердить заказ.
+        </p>
+        <p style={{ color: "#94A3B8", fontSize: 13, marginBottom: 32 }}>
+          Способ связи: {contactPreference === "chat" ? "💬 Чат в Telegram" : "📞 Звонок"}
         </p>
         <button
           onClick={() => {
@@ -180,6 +388,8 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             setBookingTime("");
             setComment("");
             setAddress("");
+            setExtrasMap({});
+            setContactPreference("");
           }}
           style={{
             background: "linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)",
@@ -201,7 +411,17 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
   }
 
   return (
-    <div>
+    <div style={{ animation: "tabIn 0.3s ease" }}>
+      <style>{`
+        @keyframes tabIn {
+          from { opacity: 0; transform: translateX(12px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
       {/* Header */}
       <div
         style={{
@@ -242,6 +462,7 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
                 fontWeight: step === s ? 700 : 500,
                 color: step === s ? "#0077B6" : "#94A3B8",
                 cursor: "pointer",
+                transition: "all 0.2s",
               }}
             >
               {s === "calc" ? "🧮 Калькулятор" : "📝 Форма заказа"}
@@ -254,16 +475,14 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
       {step === "calc" && (
         <div style={{ padding: "16px 16px 24px" }}>
           {/* Service type */}
-          <label style={{ display: "block", color: "#475569", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
-            Тип услуги
-          </label>
+          <label style={labelStyle}>Тип услуги</label>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
             {SERVICE_TYPES.map((s) => (
               <button
                 key={s.value}
                 onClick={() => {
                   setServiceType(s.value);
-                  setSelectedExtras([]);
+                  setExtrasMap({});
                   if (s.value === "dry-cleaning") setArea(0);
                   else if (area === 0) setArea(50);
                 }}
@@ -293,7 +512,7 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
           {/* Area slider */}
           {serviceType !== "specialized" && (
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: "block", color: "#475569", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+              <label style={labelStyle}>
                 {serviceType === "dry-cleaning" ? "Площадь ковров" : "Площадь помещения"}:{" "}
                 <span style={{ color: "#0077B6", fontWeight: 700 }}>{area} м²</span>
               </label>
@@ -313,31 +532,32 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             </div>
           )}
 
-          {/* Extras */}
+          {/* Extras with quantity */}
           {serviceType !== "specialized" && (
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: "block", color: "#475569", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>
+              <label style={labelStyle}>
                 {serviceType === "dry-cleaning" ? "Предметы" : "Дополнительно"}
               </label>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {(serviceType === "dry-cleaning" ? EXTRAS_DRY : EXTRAS_CLEANING).map((e) => (
-                  <button
-                    key={e.value}
-                    onClick={() => toggleExtra(e.value)}
-                    style={{
-                      background: selectedExtras.includes(e.value) ? "#ECFDF5" : "white",
-                      border: `1.5px solid ${selectedExtras.includes(e.value) ? "#00C9A7" : "#E2EDF4"}`,
-                      borderRadius: 10,
-                      padding: "7px 12px",
-                      fontSize: 12,
-                      fontWeight: selectedExtras.includes(e.value) ? 600 : 400,
-                      color: selectedExtras.includes(e.value) ? "#00875A" : "#475569",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {e.label} +{e.price} BYN
-                  </button>
-                ))}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {extrasListForType.map((e) =>
+                  e.hasQty ? (
+                    <QtyStepper
+                      key={e.value}
+                      qty={extrasMap[e.value] ?? 0}
+                      onChange={(n) => setExtraQty(e.value, n)}
+                      label={e.label}
+                      price={e.price}
+                    />
+                  ) : (
+                    <ExtraToggle
+                      key={e.value}
+                      active={(extrasMap[e.value] ?? 0) > 0}
+                      onToggle={() => toggleExtra(e.value)}
+                      label={e.label}
+                      price={e.price}
+                    />
+                  )
+                )}
               </div>
             </div>
           )}
@@ -419,16 +639,117 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             />
           </div>
 
-          {/* Phone */}
+          {/* Phone with Telegram request_contact */}
           <div style={{ marginBottom: 14 }}>
             <label style={labelStyle}>Телефон *</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+375 (44) 478-93-60"
-              style={inputStyle}
-            />
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+375 (44) 478-93-60"
+                style={{ ...inputStyle, flex: 1 }}
+              />
+              {!phoneRequested && (
+                <button
+                  onClick={requestContact}
+                  title="Поделиться номером из Telegram"
+                  style={{
+                    background: "#EFF9FF",
+                    border: "1.5px solid #00B4D8",
+                    borderRadius: 12,
+                    padding: "0 12px",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    fontSize: 18,
+                    color: "#0077B6",
+                  }}
+                >
+                  📲
+                </button>
+              )}
+              {phoneRequested && (
+                <div
+                  style={{
+                    background: "#ECFDF5",
+                    border: "1.5px solid #00C9A7",
+                    borderRadius: 12,
+                    padding: "0 12px",
+                    display: "flex",
+                    alignItems: "center",
+                    flexShrink: 0,
+                    fontSize: 14,
+                    color: "#00875A",
+                    fontWeight: 600,
+                  }}
+                >
+                  ✓
+                </div>
+              )}
+            </div>
+            <p style={{ color: "#94A3B8", fontSize: 11, marginTop: 4 }}>
+              📲 Нажмите на иконку, чтобы вставить номер из Telegram
+            </p>
+          </div>
+
+          {/* Contact preference */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>Способ связи</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {[
+                { value: "callback" as const, label: "📞 Перезвонить мне", desc: "Менеджер перезвонит вам" },
+                { value: "chat" as const, label: "💬 Чат в Telegram", desc: "Напишем в Telegram" },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setContactPreference(opt.value)}
+                  style={{
+                    background: contactPreference === opt.value ? "#EFF9FF" : "white",
+                    border: `2px solid ${contactPreference === opt.value ? "#00B4D8" : "#E2EDF4"}`,
+                    borderRadius: 12,
+                    padding: "12px 14px",
+                    textAlign: "left",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {/* Radio circle */}
+                  <div
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: "50%",
+                      border: `2px solid ${contactPreference === opt.value ? "#00B4D8" : "#CBD5E1"}`,
+                      background: contactPreference === opt.value ? "#00B4D8" : "white",
+                      flexShrink: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    {contactPreference === opt.value && (
+                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "white" }} />
+                    )}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: contactPreference === opt.value ? 600 : 400, color: contactPreference === opt.value ? "#0077B6" : "#1A2332" }}>
+                      {opt.label}
+                    </div>
+                    <div style={{ fontSize: 11, color: "#94A3B8" }}>{opt.desc}</div>
+                  </div>
+                </button>
+              ))}
+              {/* Empty = will call anyway hint */}
+              {contactPreference === "" && (
+                <p style={{ color: "#94A3B8", fontSize: 11, margin: "2px 0 0 2px" }}>
+                  Если не выбрано — менеджер перезвонит по умолчанию
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Date */}
@@ -460,6 +781,7 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
                     fontWeight: bookingTime === t ? 700 : 400,
                     color: bookingTime === t ? "#0077B6" : "#475569",
                     cursor: "pointer",
+                    transition: "all 0.15s",
                   }}
                 >
                   {t}
@@ -475,9 +797,12 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="ул. Ленина, 1, кв. 5"
+              placeholder="ул. Ленина, 1, кв. 5, Минск"
               style={inputStyle}
             />
+            <p style={{ color: "#94A3B8", fontSize: 11, marginTop: 4 }}>
+              Введите адрес вручную (ул., дом, квартира)
+            </p>
           </div>
 
           {/* Comment */}
@@ -486,7 +811,7 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Площадь, особые пожелания..."
+              placeholder="Площадь, особые пожелания, код домофона..."
               rows={3}
               style={{ ...inputStyle, resize: "none" as const }}
             />
@@ -543,6 +868,7 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
               fontWeight: 700,
               padding: "15px",
               cursor: isSubmitting ? "not-allowed" : "pointer",
+              transition: "all 0.2s",
             }}
           >
             {isSubmitting ? "Отправляем..." : "Отправить заявку"}

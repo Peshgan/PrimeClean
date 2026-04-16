@@ -9,6 +9,7 @@ import ServicesTab from "@/components/tma/tabs/ServicesTab";
 import OrderTab from "@/components/tma/tabs/OrderTab";
 import ReviewsTab from "@/components/tma/tabs/ReviewsTab";
 import ProfileTab from "@/components/tma/tabs/ProfileTab";
+import SupportFAB from "@/components/tma/SupportFAB";
 import { useTelegramWebApp } from "@/lib/tma/useTelegramWebApp";
 
 type AppScreen = "splash" | "onboarding" | "main";
@@ -20,6 +21,7 @@ export default function TMAPage() {
   const { webApp, user } = useTelegramWebApp();
   const [screen, setScreen] = useState<AppScreen>("splash");
   const [activeTab, setActiveTab] = useState<TabId>("home");
+  const [prevTab, setPrevTab] = useState<TabId>("home");
   const [preselectedService, setPreselectedService] = useState<string>("");
 
   // After splash, decide: onboarding or main
@@ -37,7 +39,13 @@ export default function TMAPage() {
 
   const goToOrder = (serviceSlug?: string) => {
     if (serviceSlug) setPreselectedService(serviceSlug);
+    setPrevTab(activeTab);
     setActiveTab("order");
+  };
+
+  const handleTabChange = (tab: TabId) => {
+    setPrevTab(activeTab);
+    setActiveTab(tab);
   };
 
   // Telegram back button: go back to home when not on home tab
@@ -46,7 +54,10 @@ export default function TMAPage() {
 
     if (activeTab !== "home") {
       webApp.BackButton.show();
-      const handler = () => setActiveTab("home");
+      const handler = () => {
+        setPrevTab(activeTab);
+        setActiveTab("home");
+      };
       webApp.BackButton.onClick(handler);
       return () => webApp.BackButton.offClick(handler);
     } else {
@@ -63,26 +74,53 @@ export default function TMAPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ background: "#F0FDFF" }}>
-      {/* Tab content — fills the space above the bottom nav */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ paddingBottom: "72px" }}>
-        {activeTab === "home" && (
-          <HomeTab user={user} onGoToOrder={goToOrder} onTabChange={setActiveTab} />
-        )}
-        {activeTab === "services" && <ServicesTab onGoToOrder={goToOrder} />}
-        {activeTab === "order" && (
-          <OrderTab
-            user={user}
-            preselectedService={preselectedService}
-            onServiceChange={setPreselectedService}
-          />
-        )}
-        {activeTab === "reviews" && <ReviewsTab />}
-        {activeTab === "profile" && <ProfileTab user={user} webApp={webApp} />}
-      </div>
+    <>
+      <style>{`
+        @keyframes slideInRight {
+          from { opacity: 0; transform: translateX(18px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInLeft {
+          from { opacity: 0; transform: translateX(-18px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .tab-content {
+          animation: slideInRight 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+      `}</style>
+      <div className="flex flex-col h-screen overflow-hidden" style={{ background: "#F0FDFF" }}>
+        {/* Tab content — fills the space above the bottom nav */}
+        <div
+          className="flex-1 overflow-y-auto overflow-x-hidden"
+          style={{ paddingBottom: "72px" }}
+        >
+          <div key={`${activeTab}-${prevTab}`} className="tab-content">
+            {activeTab === "home" && (
+              <HomeTab user={user} onGoToOrder={goToOrder} onTabChange={handleTabChange} />
+            )}
+            {activeTab === "services" && <ServicesTab onGoToOrder={goToOrder} />}
+            {activeTab === "order" && (
+              <OrderTab
+                user={user}
+                preselectedService={preselectedService}
+                onServiceChange={setPreselectedService}
+              />
+            )}
+            {activeTab === "reviews" && <ReviewsTab />}
+            {activeTab === "profile" && <ProfileTab user={user} webApp={webApp} />}
+          </div>
+        </div>
 
-      {/* Fixed bottom navigation */}
-      <BottomNav active={activeTab} onChange={setActiveTab} />
-    </div>
+        {/* Fixed bottom navigation */}
+        <BottomNav active={activeTab} onChange={handleTabChange} />
+
+        {/* Floating support button */}
+        <SupportFAB />
+      </div>
+    </>
   );
 }

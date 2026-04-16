@@ -3,6 +3,7 @@
 import type { TelegramUser } from "@/types/telegram";
 import type { TabId } from "@/app/tma/page";
 import { services } from "@/lib/data/services";
+import HomeStories from "@/components/tma/HomeStories";
 
 interface HomeTabProps {
   user: TelegramUser | null;
@@ -104,13 +105,16 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
         </button>
       </div>
 
+      {/* Stories */}
+      <HomeStories />
+
       {/* Stats row */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
           gap: 12,
-          padding: "16px 16px 0",
+          padding: "12px 16px 0",
         }}
       >
         {STATS.map((s) => (
@@ -292,6 +296,18 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
             </a>
           ))}
         </div>
+      </div>
+
+      {/* УНП footer */}
+      <div
+        style={{
+          textAlign: "center",
+          padding: "20px 16px 8px",
+          color: "#CBD5E1",
+          fontSize: 11,
+        }}
+      >
+        УНП ВЕ89624282
       </div>
     </div>
   );

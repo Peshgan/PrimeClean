@@ -136,9 +136,13 @@ export default function Footer() {
 
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-[#94A3B8] text-sm">
-            © {new Date().getFullYear()} PrimeClean. Все права защищены.
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <p className="text-[#94A3B8] text-sm">
+              © {new Date().getFullYear()} PrimeClean. Все права защищены.
+            </p>
+            <span className="hidden sm:inline text-white/20">·</span>
+            <p className="text-[#64748B] text-xs">УНП ВЕ89624282</p>
+          </div>
           <div className="flex gap-6">
             <Link href="/privacy" className="text-[#94A3B8] hover:text-white text-sm transition-colors">
               Политика конфиденциальности

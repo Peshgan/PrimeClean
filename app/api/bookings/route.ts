@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getDb } from "@/lib/db";
 
+const ExtrasSchema = z.record(z.string(), z.number().int().nonnegative());
+
 const BookingSchema = z.object({
   name: z.string().min(2).max(100),
   phone: z.string().min(7).max(20),
@@ -12,17 +14,83 @@ const BookingSchema = z.object({
   address: z.string().optional(),
   rooms: z.number().int().positive().optional(),
   area: z.number().positive().optional(),
-  extras: z.array(z.string()).optional(),
+  // Accept both legacy string[] and new { key: qty } object
+  extras: z.union([z.array(z.string()), ExtrasSchema]).optional(),
   priceEstimate: z.number().nonnegative().optional(),
   comment: z.string().max(500).optional(),
   userTelegramId: z.string().optional(),
+  // TG user info from initDataUnsafe
+  tgUsername: z.string().optional(),
+  tgUserId: z.string().optional(),
+  contactPreference: z.enum(["callback", "chat"]).optional(),
   source: z.enum(["website", "telegram"]).default("website"),
 });
 
-async function notifyAdmin(bookingId: number | bigint, data: z.infer<typeof BookingSchema>) {
+function normalizeExtras(
+  extras: string[] | Record<string, number> | undefined
+): Record<string, number> | null {
+  if (!extras) return null;
+  if (Array.isArray(extras)) {
+    // Legacy format: boolean flags → qty 1
+    return extras.reduce<Record<string, number>>((acc, key) => {
+      acc[key] = 1;
+      return acc;
+    }, {});
+  }
+  return extras;
+}
+
+function formatExtrasForNotification(extras: Record<string, number> | null): string {
+  if (!extras || Object.keys(extras).length === 0) return "—";
+  const LABELS: Record<string, string> = {
+    windows: "Мойка окон",
+    fridge: "Холодильник",
+    oven: "Духовка",
+    balcony: "Балкон",
+    ironing: "Глажка",
+    sofa2: "Диван 2-местный",
+    sofa3: "Диван 3-местный",
+    sofa_corner: "Угловой диван",
+    sofa4: "Диван 4-местный",
+    sofa5: "Диван 5-6 местный",
+    mat1_1: "Матрас 1-сп (1ст.)",
+    mat1_2: "Матрас 1-сп (2ст.)",
+    mat2_1: "Матрас 2-сп (1ст.)",
+    mat2_2: "Матрас 2-сп (2ст.)",
+    chair: "Кресло",
+    stool: "Стул",
+    comp_chair: "Компьютерный стул",
+    headboard: "Изголовье",
+    pouf: "Пуф",
+    kitchen: "Кухонный уголок",
+  };
+  return Object.entries(extras)
+    .filter(([, qty]) => qty > 0)
+    .map(([key, qty]) => `${LABELS[key] ?? key}${qty > 1 ? ` ×${qty}` : ""}`)
+    .join(", ");
+}
+
+async function notifyAdmin(
+  bookingId: number | bigint,
+  data: z.infer<typeof BookingSchema>,
+  extrasObj: Record<string, number> | null
+) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const adminChat = process.env.TELEGRAM_ADMIN_CHAT_ID;
   if (!token || !adminChat) return;
+
+  // Build contact link: prefer @username, fallback to tg://user?id=
+  let tgContact = "—";
+  if (data.tgUsername) {
+    tgContact = `@${data.tgUsername}`;
+  } else if (data.tgUserId) {
+    tgContact = `<a href="tg://user?id=${data.tgUserId}">Открыть в Telegram</a>`;
+  }
+
+  const contactPref =
+    data.contactPreference === "chat"
+      ? "💬 Чат в ТГ"
+      : "📞 Звонок";
 
   const text =
     `📋 <b>Новая заявка #${bookingId}</b>\n\n` +
@@ -31,7 +99,10 @@ async function notifyAdmin(bookingId: number | bigint, data: z.infer<typeof Book
     `📅 ${data.bookingDate} в ${data.bookingTime}\n` +
     `💰 ~${data.priceEstimate ?? "?"} BYN\n` +
     `📍 ${data.address ?? "не указан"}\n` +
+    `➕ Доп. услуги: ${formatExtrasForNotification(extrasObj)}\n` +
     `💬 ${data.comment ?? "—"}\n` +
+    `📲 Telegram: ${tgContact}\n` +
+    `📡 Предпочтительный способ связи: ${contactPref}\n` +
     `🔌 Источник: ${data.source}`;
 
   await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
@@ -54,18 +125,25 @@ export async function POST(req: NextRequest) {
     }
 
     const d = parsed.data;
+    const extrasObj = normalizeExtras(d.extras);
     const db = getDb();
+
+    // Determine TG contact info
+    const tgUsername = d.tgUsername ?? null;
+    const tgUserId = d.tgUserId ?? null;
 
     const result = db
       .prepare(
         `INSERT INTO bookings
-          (user_telegram_id, name, phone, service_slug, service_name,
+          (user_telegram_id, tg_username, tg_user_id, name, phone, service_slug, service_name,
            booking_date, booking_time, address, rooms, area,
-           extras, price_estimate, comment, source)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+           extras, price_estimate, comment, contact_preference, source)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
       )
       .run(
-        d.userTelegramId ?? null,
+        d.userTelegramId ?? tgUserId ?? null,
+        tgUsername,
+        tgUserId,
         d.name,
         d.phone,
         d.serviceSlug,
@@ -75,13 +153,14 @@ export async function POST(req: NextRequest) {
         d.address ?? null,
         d.rooms ?? null,
         d.area ?? null,
-        d.extras ? JSON.stringify(d.extras) : null,
+        extrasObj ? JSON.stringify(extrasObj) : null,
         d.priceEstimate ?? null,
         d.comment ?? null,
+        d.contactPreference ?? "callback",
         d.source
       );
 
-    await notifyAdmin(result.lastInsertRowid, d);
+    await notifyAdmin(result.lastInsertRowid, d, extrasObj);
 
     return NextResponse.json({
       success: true,

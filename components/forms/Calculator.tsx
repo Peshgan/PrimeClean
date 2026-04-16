@@ -5,6 +5,7 @@ import { ChevronRight, Calculator as CalcIcon } from "lucide-react";
 import Button from "@/components/ui/Button";
 
 type ServiceType = "standard" | "general" | "after-repair" | "office" | "dry-cleaning" | "specialized";
+type ExtrasMap = Record<string, number>;
 
 const serviceTypes: { value: ServiceType; label: string; basePrice: number; unit: string }[] = [
   { value: "standard", label: "Стандартная уборка", basePrice: 1.8, unit: "BYN/м²" },
@@ -15,46 +16,47 @@ const serviceTypes: { value: ServiceType; label: string; basePrice: number; unit
   { value: "specialized", label: "Спец. уборка", basePrice: 0, unit: "индивидуально" },
 ];
 
-const cleaningExtras: { value: string; label: string; price: number }[] = [
-  { value: "windows", label: "Мойка окон", price: 18 },
+const cleaningExtras: { value: string; label: string; price: number; hasQty?: boolean }[] = [
+  { value: "windows", label: "Мойка окон", price: 18, hasQty: true },
   { value: "fridge", label: "Холодильник изнутри", price: 23 },
   { value: "oven", label: "Духовка", price: 18 },
-  { value: "balcony", label: "Балкон / лоджия", price: 30 },
+  { value: "balcony", label: "Балкон / лоджия", price: 30, hasQty: true },
   { value: "ironing", label: "Глажка белья (1 час)", price: 27 },
 ];
 
-const dryCleaningExtras: { value: string; label: string; price: number }[] = [
-  { value: "sofa2", label: "Диван двухместный", price: 90 },
-  { value: "sofa3", label: "Трехместный", price: 113 },
-  { value: "sofa4", label: "Четырехместный (угловой)", price: 128 },
-  { value: "sofa5", label: "5-6 местный угловой", price: 150 },
-  { value: "mat1_1", label: "Матрас 1-сп (1 сторона)", price: 53 },
-  { value: "mat1_2", label: "Матрас 1-сп (2 стороны)", price: 90 },
-  { value: "mat2_1", label: "Матрас 2-сп (1 сторона)", price: 75 },
-  { value: "mat2_2", label: "Матрас 2-сп (2 стороны)", price: 150 },
-  { value: "chair", label: "Кресло", price: 53 },
-  { value: "stool", label: "Стул, табурет", price: 18 },
-  { value: "comp_chair", label: "Стул компьютерный", price: 23 },
-  { value: "headboard", label: "Изголовье кровати", price: 75 },
-  { value: "pouf", label: "Пуф", price: 23 },
-  { value: "kitchen", label: "Кухонный уголок", price: 75 },
+const dryCleaningExtras: { value: string; label: string; price: number; hasQty?: boolean }[] = [
+  { value: "sofa2", label: "Диван двухместный", price: 90, hasQty: true },
+  { value: "sofa3", label: "Трехместный", price: 113, hasQty: true },
+  { value: "sofa4", label: "Четырехместный (угловой)", price: 128, hasQty: true },
+  { value: "sofa5", label: "5-6 местный угловой", price: 150, hasQty: true },
+  { value: "mat1_1", label: "Матрас 1-сп (1 сторона)", price: 53, hasQty: true },
+  { value: "mat1_2", label: "Матрас 1-сп (2 стороны)", price: 90, hasQty: true },
+  { value: "mat2_1", label: "Матрас 2-сп (1 сторона)", price: 75, hasQty: true },
+  { value: "mat2_2", label: "Матрас 2-сп (2 стороны)", price: 150, hasQty: true },
+  { value: "chair", label: "Кресло", price: 53, hasQty: true },
+  { value: "stool", label: "Стул, табурет", price: 18, hasQty: true },
+  { value: "comp_chair", label: "Стул компьютерный", price: 23, hasQty: true },
+  { value: "headboard", label: "Изголовье кровати", price: 75, hasQty: true },
+  { value: "pouf", label: "Пуф", price: 23, hasQty: true },
+  { value: "kitchen", label: "Кухонный уголок", price: 75, hasQty: true },
 ];
 
-function calcPrice(service: ServiceType, area: number, selectedExtras: string[]): number {
+function calcPrice(service: ServiceType, area: number, extras: ExtrasMap): number {
   if (service === "specialized") return 0;
 
   const svc = serviceTypes.find((s) => s.value === service)!;
   let base = svc.basePrice * area;
-  
+
   if (service !== "dry-cleaning") {
     base = Math.max(base, 69);
   }
-  
+
   const currentExtras = service === "dry-cleaning" ? dryCleaningExtras : cleaningExtras;
-  const extrasTotal = currentExtras
-    .filter((e) => selectedExtras.includes(e.value))
-    .reduce((sum, e) => sum + e.price, 0);
-    
+  const extrasTotal = currentExtras.reduce((sum, e) => {
+    const qty = extras[e.value] ?? 0;
+    return sum + e.price * qty;
+  }, 0);
+
   return Math.round(base + extrasTotal);
 }
 
@@ -65,15 +67,23 @@ interface CalculatorProps {
 export default function Calculator({ onOrder }: CalculatorProps) {
   const [service, setService] = useState<ServiceType>("standard");
   const [area, setArea] = useState(50);
-  const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
+  const [extras, setExtras] = useState<ExtrasMap>({});
 
-  const price = calcPrice(service, area, selectedExtras);
+  const price = calcPrice(service, area, extras);
 
-  const toggleExtra = (value: string) => {
-    setSelectedExtras((prev) =>
-      prev.includes(value) ? prev.filter((e) => e !== value) : [...prev, value]
-    );
+  const setQty = (key: string, qty: number) => {
+    setExtras((prev) => {
+      const next = { ...prev };
+      if (qty <= 0) {
+        delete next[key];
+      } else {
+        next[key] = qty;
+      }
+      return next;
+    });
   };
+
+  const currentExtras = service === "dry-cleaning" ? dryCleaningExtras : cleaningExtras;
 
   return (
     <div className="bg-white rounded-3xl border border-[#E2EDF4] shadow-lg p-6 lg:p-8">
@@ -102,7 +112,7 @@ export default function Calculator({ onOrder }: CalculatorProps) {
                   if (s.value === "dry-cleaning" && area === 50) setArea(0);
                   if (s.value !== "dry-cleaning" && area === 0) setArea(50);
                   setService(s.value);
-                  setSelectedExtras([]);
+                  setExtras({});
                 }}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all duration-200 cursor-pointer text-left ${
                   service === s.value
@@ -121,7 +131,8 @@ export default function Calculator({ onOrder }: CalculatorProps) {
         {service !== "specialized" && (
           <div>
             <label className="block text-sm font-medium text-[#475569] mb-2">
-              {service === "dry-cleaning" ? "Площадь ковров" : "Площадь помещения"}: <span className="text-[#0077B6] font-bold">{area} м²</span>
+              {service === "dry-cleaning" ? "Площадь ковров" : "Площадь помещения"}:{" "}
+              <span className="text-[#0077B6] font-bold">{area} м²</span>
             </label>
             <input
               type="range"
@@ -140,33 +151,85 @@ export default function Calculator({ onOrder }: CalculatorProps) {
           </div>
         )}
 
-        {/* Extras */}
+        {/* Extras with quantity */}
         {service !== "specialized" && (
           <div>
-            <label className="block text-sm font-medium text-[#475569] mb-2">
+            <label className="block text-sm font-medium text-[#475569] mb-3">
               {service === "dry-cleaning" ? "Предметы для химчистки" : "Дополнительные услуги"}
             </label>
-            <div className="flex flex-wrap gap-2">
-              {(service === "dry-cleaning" ? dryCleaningExtras : cleaningExtras).map((e) => (
-                <button
-                  key={e.value}
-                  type="button"
-                  onClick={() => toggleExtra(e.value)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all duration-200 cursor-pointer ${
-                    selectedExtras.includes(e.value)
-                      ? "border-[#00C9A7] bg-[#E6FFF9] text-[#00875A]"
-                      : "border-[#E2EDF4] text-[#475569] hover:border-[#00B4D8]/50"
-                  }`}
-                >
-                  {e.label} +{e.price} BYN
-                </button>
-              ))}
+            <div className="space-y-2">
+              {currentExtras.map((e) => {
+                const qty = extras[e.value] ?? 0;
+                const active = qty > 0;
+                return e.hasQty ? (
+                  /* Stepper row for countable items */
+                  <div
+                    key={e.value}
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl border transition-all duration-200 ${
+                      active
+                        ? "border-[#00C9A7] bg-[#E6FFF9]"
+                        : "border-[#E2EDF4] bg-white"
+                    }`}
+                  >
+                    <span className={`text-sm flex-1 ${active ? "font-semibold text-[#00875A]" : "text-[#475569]"}`}>
+                      {e.label}
+                      <span className={`text-xs ml-1 ${active ? "text-[#00875A]" : "text-[#94A3B8]"}`}>
+                        +{e.price} BYN{qty > 1 ? ` × ${qty} = ${e.price * qty} BYN` : ""}
+                      </span>
+                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {active && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setQty(e.value, qty - 1)}
+                            className="w-7 h-7 rounded-lg border-2 border-[#00C9A7] bg-white text-[#00875A] font-bold text-base flex items-center justify-center hover:bg-[#E6FFF9] transition-colors cursor-pointer"
+                          >
+                            −
+                          </button>
+                          <span className="w-5 text-center font-bold text-[#00875A] text-sm">
+                            {qty}
+                          </span>
+                        </>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setQty(e.value, qty + 1)}
+                        className={`w-7 h-7 rounded-lg border-2 font-bold text-base flex items-center justify-center transition-all cursor-pointer ${
+                          active
+                            ? "border-[#00B4D8] bg-[#00B4D8] text-white hover:bg-[#0096B4]"
+                            : "border-[#00B4D8] bg-white text-[#00B4D8] hover:bg-[#F0FDFF]"
+                        }`}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Simple toggle for non-countable items */
+                  <button
+                    key={e.value}
+                    type="button"
+                    onClick={() => setQty(e.value, active ? 0 : 1)}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border-2 text-sm transition-all duration-200 cursor-pointer ${
+                      active
+                        ? "border-[#00C9A7] bg-[#E6FFF9] text-[#00875A] font-semibold"
+                        : "border-[#E2EDF4] text-[#475569] hover:border-[#00B4D8]/50"
+                    }`}
+                  >
+                    <span>{e.label}</span>
+                    <span className={`text-xs ${active ? "text-[#00875A]" : "text-[#94A3B8]"}`}>
+                      +{e.price} BYN
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
 
         {/* Result */}
-        <div className="bg-gradient-to-r from-[#00B4D8] to-[#0077B6] rounded-2xl p-4 text-white">
+        <div className="bg-linear-to-r from-[#00B4D8] to-[#0077B6] rounded-2xl p-4 text-white">
           <p className="text-sm opacity-80 mb-1">Примерная стоимость</p>
           {service === "specialized" ? (
             <div className="flex items-baseline gap-2">
@@ -189,7 +252,7 @@ export default function Calculator({ onOrder }: CalculatorProps) {
             document.getElementById("booking")?.scrollIntoView({ behavior: "smooth" });
           }}
         >
-        Заказать
+          Заказать
           <ChevronRight size={18} className="ml-1" />
         </Button>
       </div>
