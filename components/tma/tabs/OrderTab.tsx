@@ -218,25 +218,27 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
 
   const price = calcPrice(serviceType, area, extrasMap);
 
-  // Listen for Telegram contactRequested event (fired after requestContact dialog)
+  // Telegram fires "contactRequested" event after user approves requestContact()
+  // eventData: { status: 'sent'|'cancelled', contact?: { phone_number, first_name, ... } }
   useEffect(() => {
     if (typeof window === "undefined") return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tg = (window as any)?.Telegram?.WebApp;
-    if (!tg) return;
+    if (!tg?.onEvent) return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handler = (result: any) => {
-      // result: { status: 'sent'|'cancelled', contact?: { phone_number, first_name } }
-      const phone = result?.contact?.phone_number ?? result?.phone_number;
+    const handler = (eventData: any) => {
+      if (eventData?.status !== "sent") return;
+      const phone: string | undefined =
+        eventData?.contact?.phone_number ??   // standard path
+        eventData?.phone_number;              // fallback
       if (phone) {
-        const formatted = phone.startsWith("+") ? phone : `+${phone}`;
-        setPhone(formatted);
+        setPhone(phone.startsWith("+") ? phone : `+${phone}`);
         setPhoneRequested(true);
       }
     };
 
-    tg.onEvent?.("contactRequested", handler);
+    tg.onEvent("contactRequested", handler);
     return () => tg.offEvent?.("contactRequested", handler);
   }, []);
 
@@ -246,20 +248,11 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
     if (!tg) return;
 
     if (typeof tg.requestContact === "function") {
-      // Bot API 7.0+ — opens native share-contact dialog
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tg.requestContact((sent: boolean, result: any) => {
-        if (!sent) return;
-        const phone =
-          result?.contact?.phone_number ??
-          result?.phone_number ??
-          result?.response_parameters?.contact?.phone_number;
-        if (phone) {
-          const formatted = phone.startsWith("+") ? phone : `+${phone}`;
-          setPhone(formatted);
-          setPhoneRequested(true);
-        }
-      });
+      // Bot API 7.0+ — opens native share-contact dialog.
+      // NOTE: the callback only receives (sent: boolean).
+      // The actual phone number arrives via the "contactRequested" event
+      // which is handled in the useEffect above.
+      tg.requestContact();
     }
   };
 
