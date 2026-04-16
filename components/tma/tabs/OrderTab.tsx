@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import type { TelegramUser } from "@/types/telegram";
 import { services } from "@/lib/data/services";
+import AddressPicker from "@/components/tma/AddressPicker";
 
 interface OrderTabProps {
   user: TelegramUser | null;
@@ -66,7 +67,7 @@ function slugToServiceType(slug: string): ServiceType {
   if (slug.includes("remont")) return "after-repair";
   if (slug.includes("ofis")) return "office";
   if (slug.includes("khim")) return "dry-cleaning";
-  if (slug.includes("spet")) return "specialized";
+  if (slug.includes("specializirovannaya") || slug.includes("spets") || slug.includes("spet")) return "specialized";
   return "standard";
 }
 
@@ -217,39 +218,46 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
 
   const price = calcPrice(serviceType, area, extrasMap);
 
-  // Listen for Telegram contact_requested event
+  // Listen for Telegram contactRequested event (fired after requestContact dialog)
   useEffect(() => {
     if (typeof window === "undefined") return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tg = (window as any)?.Telegram?.WebApp;
-    if (!tg?.onEvent) return;
+    if (!tg) return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handler = (e: any) => {
-      if (e?.phone_number) {
-        setPhone(`+${e.phone_number}`);
+    const handler = (result: any) => {
+      // result: { status: 'sent'|'cancelled', contact?: { phone_number, first_name } }
+      const phone = result?.contact?.phone_number ?? result?.phone_number;
+      if (phone) {
+        const formatted = phone.startsWith("+") ? phone : `+${phone}`;
+        setPhone(formatted);
         setPhoneRequested(true);
       }
     };
-    tg.onEvent("contactRequested", handler);
-    return () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (tg as any).offEvent?.("contactRequested", handler);
-    };
+
+    tg.onEvent?.("contactRequested", handler);
+    return () => tg.offEvent?.("contactRequested", handler);
   }, []);
 
   const requestContact = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tg = (window as any)?.Telegram?.WebApp;
-    if (tg?.requestContact) {
+    if (!tg) return;
+
+    if (typeof tg.requestContact === "function") {
+      // Bot API 7.0+ — opens native share-contact dialog
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tg.requestContact((ok: boolean, msg: any) => {
-        if (ok && msg) {
-          const contact = msg.contact;
-          if (contact?.phone_number) {
-            setPhone(`+${contact.phone_number}`);
-            setPhoneRequested(true);
-          }
+      tg.requestContact((sent: boolean, result: any) => {
+        if (!sent) return;
+        const phone =
+          result?.contact?.phone_number ??
+          result?.phone_number ??
+          result?.response_parameters?.contact?.phone_number;
+        if (phone) {
+          const formatted = phone.startsWith("+") ? phone : `+${phone}`;
+          setPhone(formatted);
+          setPhoneRequested(true);
         }
       });
     }
@@ -792,20 +800,8 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             </div>
           </div>
 
-          {/* Address */}
-          <div style={{ marginBottom: 14 }}>
-            <label style={labelStyle}>Адрес</label>
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="ул. Ленина, 1, кв. 5, Минск"
-              style={inputStyle}
-            />
-            <p style={{ color: "#94A3B8", fontSize: 11, marginTop: 4 }}>
-              Введите адрес вручную (ул., дом, квартира)
-            </p>
-          </div>
+          {/* Address with GPS picker */}
+          <AddressPicker value={address} onChange={setAddress} />
 
           {/* Comment */}
           <div style={{ marginBottom: 20 }}>

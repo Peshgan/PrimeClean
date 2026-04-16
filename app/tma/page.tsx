@@ -110,7 +110,7 @@ export default function TMAPage() {
                 onServiceChange={setPreselectedService}
               />
             )}
-            {activeTab === "reviews" && <ReviewsTab />}
+            {activeTab === "reviews" && <ReviewsTab user={user} />}
             {activeTab === "profile" && <ProfileTab user={user} webApp={webApp} />}
           </div>
         </div>

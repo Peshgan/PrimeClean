@@ -8,7 +8,8 @@ const ReviewSchema = z.object({
   rating: z.number().int().min(1).max(5),
   serviceName: z.string().optional(),
   text: z.string().min(10).max(1000),
-  photoUrl: z.string().url().optional(),
+  // Accept URL or base64 data URI
+  photoUrl: z.string().optional(),
   userTelegramId: z.string().optional(),
 });
 
