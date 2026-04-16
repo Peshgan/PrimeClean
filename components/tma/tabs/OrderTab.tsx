@@ -229,11 +229,12 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handler = (eventData: any) => {
       if (eventData?.status !== "sent") return;
-      const phone: string | undefined =
+      const rawPhone: string | undefined =
         eventData?.contact?.phone_number ??   // standard path
         eventData?.phone_number;              // fallback
-      if (phone) {
-        setPhone(phone.startsWith("+") ? phone : `+${phone}`);
+      if (rawPhone) {
+        const formatted = rawPhone.startsWith("+") ? rawPhone : `+${rawPhone}`;
+        setPhone(formatted);
         setPhoneRequested(true);
       }
     };
@@ -248,11 +249,21 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
     if (!tg) return;
 
     if (typeof tg.requestContact === "function") {
-      // Bot API 7.0+ — opens native share-contact dialog.
-      // NOTE: the callback only receives (sent: boolean).
-      // The actual phone number arrives via the "contactRequested" event
-      // which is handled in the useEffect above.
-      tg.requestContact();
+      // Bot API 6.9+ — opens native share-contact dialog.
+      // The callback receives (sent: boolean, data?: { contact: { phone_number, ... } })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tg.requestContact((sent: boolean, data?: any) => {
+        if (!sent) return;
+        // Try callback data first (most reliable path)
+        const rawPhone: string | undefined =
+          data?.contact?.phone_number ??
+          data?.phone_number;
+        if (rawPhone) {
+          setPhone(rawPhone.startsWith("+") ? rawPhone : `+${rawPhone}`);
+          setPhoneRequested(true);
+        }
+        // If no data in callback, the "contactRequested" useEffect will catch it
+      });
     }
   };
 

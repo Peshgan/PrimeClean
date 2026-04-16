@@ -5,9 +5,12 @@ import type { TabId } from "@/app/tma/page";
 interface BottomNavProps {
   active: TabId;
   onChange: (tab: TabId) => void;
+  isAdmin?: boolean;
 }
 
-const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
+type TabDef = { id: TabId; label: string; icon: React.ReactNode; adminOnly?: boolean };
+
+const TABS: TabDef[] = [
   {
     id: "home",
     label: "Главная",
@@ -58,9 +61,21 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
       </svg>
     ),
   },
+  {
+    id: "admin",
+    label: "Админ",
+    adminOnly: true,
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      </svg>
+    ),
+  },
 ];
 
-export default function BottomNav({ active, onChange }: BottomNavProps) {
+export default function BottomNav({ active, onChange, isAdmin = false }: BottomNavProps) {
+  const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin);
+
   return (
     <div
       style={{
@@ -77,9 +92,10 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
         boxShadow: "0 -4px 20px rgba(0,0,0,0.06)",
       }}
     >
-      {TABS.map((tab) => {
+      {visibleTabs.map((tab) => {
         const isActive = active === tab.id;
         const isOrder = tab.id === "order";
+        const isAdminTab = tab.id === "admin";
 
         if (isOrder) {
           return (
@@ -116,14 +132,7 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
               >
                 {tab.icon}
               </div>
-              <span
-                style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: "#0077B6",
-                  marginTop: 2,
-                }}
-              >
+              <span style={{ fontSize: 10, fontWeight: 600, color: "#0077B6", marginTop: 2 }}>
                 {tab.label}
               </span>
             </button>
@@ -145,17 +154,23 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
               cursor: "pointer",
               gap: 3,
               transition: "all 0.15s ease",
-              color: isActive ? "#0077B6" : "#94A3B8",
+              color: isActive
+                ? isAdminTab ? "#7C3AED" : "#0077B6"
+                : "#94A3B8",
+              position: "relative",
             }}
           >
+            {/* Admin tab gets a special purple tint */}
+            {isAdminTab && isActive && (
+              <div style={{
+                position: "absolute",
+                inset: "4px 2px",
+                borderRadius: 10,
+                background: "rgba(124,58,237,0.08)",
+              }} />
+            )}
             {tab.icon}
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: isActive ? 600 : 500,
-                lineHeight: 1,
-              }}
-            >
+            <span style={{ fontSize: 10, fontWeight: isActive ? 600 : 500, lineHeight: 1, position: "relative" }}>
               {tab.label}
             </span>
             {isActive && (
@@ -163,9 +178,9 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
                 style={{
                   position: "absolute",
                   bottom: 0,
-                  width: 32,
+                  width: 28,
                   height: 3,
-                  background: "#00B4D8",
+                  background: isAdminTab ? "#7C3AED" : "#00B4D8",
                   borderRadius: "3px 3px 0 0",
                 }}
               />

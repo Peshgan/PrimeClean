@@ -9,11 +9,12 @@ import ServicesTab from "@/components/tma/tabs/ServicesTab";
 import OrderTab from "@/components/tma/tabs/OrderTab";
 import ReviewsTab from "@/components/tma/tabs/ReviewsTab";
 import ProfileTab from "@/components/tma/tabs/ProfileTab";
+import AdminTab from "@/components/tma/tabs/AdminTab";
 import SupportFAB from "@/components/tma/SupportFAB";
 import { useTelegramWebApp } from "@/lib/tma/useTelegramWebApp";
 
 type AppScreen = "splash" | "onboarding" | "main";
-export type TabId = "home" | "services" | "order" | "reviews" | "profile";
+export type TabId = "home" | "services" | "order" | "reviews" | "profile" | "admin";
 
 const ONBOARDING_KEY = "pc_tma_onboarded";
 
@@ -23,8 +24,19 @@ export default function TMAPage() {
   const [activeTab, setActiveTab] = useState<TabId>("home");
   const [prevTab, setPrevTab] = useState<TabId>("home");
   const [preselectedService, setPreselectedService] = useState<string>("");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
 
-  // After splash, decide: onboarding or main
+  // Check admin status once user is known
+  useEffect(() => {
+    if (!user?.id || adminChecked) return;
+    setAdminChecked(true);
+    fetch(`/api/admin/tma?tgId=${user.id}&action=check`)
+      .then((r) => r.json())
+      .then((d) => { if (d.isAdmin) setIsAdmin(true); })
+      .catch(() => {});
+  }, [user, adminChecked]);
+
   const handleSplashDone = () => {
     const seen = typeof window !== "undefined" && localStorage.getItem(ONBOARDING_KEY);
     setScreen(seen ? "main" : "onboarding");
@@ -48,16 +60,12 @@ export default function TMAPage() {
     setActiveTab(tab);
   };
 
-  // Telegram back button: go back to home when not on home tab
+  // Telegram back button
   useEffect(() => {
     if (!webApp || screen !== "main") return;
-
     if (activeTab !== "home") {
       webApp.BackButton.show();
-      const handler = () => {
-        setPrevTab(activeTab);
-        setActiveTab("home");
-      };
+      const handler = () => { setPrevTab(activeTab); setActiveTab("home"); };
       webApp.BackButton.onClick(handler);
       return () => webApp.BackButton.offClick(handler);
     } else {
@@ -65,13 +73,8 @@ export default function TMAPage() {
     }
   }, [webApp, activeTab, screen]);
 
-  if (screen === "splash") {
-    return <SplashScreen onDone={handleSplashDone} />;
-  }
-
-  if (screen === "onboarding") {
-    return <Onboarding onDone={handleOnboardingDone} />;
-  }
+  if (screen === "splash") return <SplashScreen onDone={handleSplashDone} />;
+  if (screen === "onboarding") return <Onboarding onDone={handleOnboardingDone} />;
 
   return (
     <>
@@ -80,24 +83,11 @@ export default function TMAPage() {
           from { opacity: 0; transform: translateX(18px); }
           to { opacity: 1; transform: translateX(0); }
         }
-        @keyframes slideInLeft {
-          from { opacity: 0; transform: translateX(-18px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        .tab-content {
-          animation: slideInRight 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .tab-content { animation: slideInRight 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
       `}</style>
+
       <div className="flex flex-col h-screen overflow-hidden" style={{ background: "#F0FDFF" }}>
-        {/* Tab content — fills the space above the bottom nav */}
-        <div
-          className="flex-1 overflow-y-auto overflow-x-hidden"
-          style={{ paddingBottom: "72px" }}
-        >
+        <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ paddingBottom: "72px" }}>
           <div key={`${activeTab}-${prevTab}`} className="tab-content">
             {activeTab === "home" && (
               <HomeTab user={user} onGoToOrder={goToOrder} onTabChange={handleTabChange} />
@@ -112,13 +102,13 @@ export default function TMAPage() {
             )}
             {activeTab === "reviews" && <ReviewsTab user={user} />}
             {activeTab === "profile" && <ProfileTab user={user} webApp={webApp} />}
+            {activeTab === "admin" && isAdmin && user?.id && (
+              <AdminTab tgId={String(user.id)} />
+            )}
           </div>
         </div>
 
-        {/* Fixed bottom navigation */}
-        <BottomNav active={activeTab} onChange={handleTabChange} />
-
-        {/* Floating support button */}
+        <BottomNav active={activeTab} onChange={handleTabChange} isAdmin={isAdmin} />
         <SupportFAB />
       </div>
     </>
