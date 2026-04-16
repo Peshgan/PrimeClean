@@ -242,10 +242,10 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tg = (window as any)?.Telegram?.WebApp;
     if (tg?.requestContact) {
-      tg.requestContact((ok, msg) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tg.requestContact((ok: boolean, msg: any) => {
         if (ok && msg) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const contact = (msg as any).contact;
+          const contact = msg.contact;
           if (contact?.phone_number) {
             setPhone(`+${contact.phone_number}`);
             setPhoneRequested(true);
