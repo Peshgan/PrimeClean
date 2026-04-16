@@ -220,7 +220,8 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
   // Listen for Telegram contact_requested event
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const tg = (window as Window & { Telegram?: { WebApp?: { onEvent?: (event: string, cb: () => void) => void } } }).Telegram?.WebApp;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tg = (window as any)?.Telegram?.WebApp;
     if (!tg?.onEvent) return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -238,7 +239,8 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
   }, []);
 
   const requestContact = () => {
-    const tg = (window as Window & { Telegram?: { WebApp?: { requestContact?: (cb: (ok: boolean, msg: unknown) => void) => void } } }).Telegram?.WebApp;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tg = (window as any)?.Telegram?.WebApp;
     if (tg?.requestContact) {
       tg.requestContact((ok, msg) => {
         if (ok && msg) {
