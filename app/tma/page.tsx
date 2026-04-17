@@ -37,6 +37,47 @@ export default function TMAPage() {
       .catch(() => {});
   }, [user, adminChecked]);
 
+  // Lock the Telegram viewport and disable any zoom / swipe collapse
+  useEffect(() => {
+    if (!webApp) return;
+    try {
+      webApp.ready();
+      webApp.expand();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const w = webApp as any;
+      w.disableVerticalSwipes?.();
+      w.requestFullscreen?.();
+      w.lockOrientation?.();
+    } catch {}
+
+    // Extra safety: prevent pinch / double-tap zoom on iOS/Android WebView
+    const blockGesture = (e: Event) => e.preventDefault();
+    document.addEventListener("gesturestart", blockGesture as EventListener);
+    document.addEventListener("gesturechange", blockGesture as EventListener);
+    document.addEventListener("gestureend", blockGesture as EventListener);
+
+    let lastTouch = 0;
+    const blockDoubleTap = (e: TouchEvent) => {
+      const now = Date.now();
+      if (now - lastTouch < 350) e.preventDefault();
+      lastTouch = now;
+    };
+    document.addEventListener("touchend", blockDoubleTap, { passive: false });
+
+    const blockMultiTouch = (e: TouchEvent) => {
+      if (e.touches.length > 1) e.preventDefault();
+    };
+    document.addEventListener("touchmove", blockMultiTouch, { passive: false });
+
+    return () => {
+      document.removeEventListener("gesturestart", blockGesture as EventListener);
+      document.removeEventListener("gesturechange", blockGesture as EventListener);
+      document.removeEventListener("gestureend", blockGesture as EventListener);
+      document.removeEventListener("touchend", blockDoubleTap);
+      document.removeEventListener("touchmove", blockMultiTouch);
+    };
+  }, [webApp]);
+
   const handleSplashDone = () => {
     const seen = typeof window !== "undefined" && localStorage.getItem(ONBOARDING_KEY);
     setScreen(seen ? "main" : "onboarding");
@@ -56,6 +97,8 @@ export default function TMAPage() {
   };
 
   const handleTabChange = (tab: TabId) => {
+    if (tab === activeTab) return;
+    try { webApp?.hapticFeedback?.selectionChanged?.(); } catch {}
     setPrevTab(activeTab);
     setActiveTab(tab);
   };
@@ -82,6 +125,14 @@ export default function TMAPage() {
         @keyframes slideInRight {
           from { opacity: 0; transform: translateX(18px); }
           to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.96); }
+          to { opacity: 1; transform: scale(1); }
         }
         .tab-content { animation: slideInRight 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
       `}</style>

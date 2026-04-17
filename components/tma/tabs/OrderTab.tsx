@@ -24,23 +24,23 @@ const SERVICE_TYPES = [
   { value: "specialized" as ServiceType, label: "Спец. уборка", basePrice: 0 },
 ];
 
-// Extras that support quantity > 1
-const EXTRAS_CLEANING: { value: string; label: string; price: number; hasQty?: boolean }[] = [
-  { value: "windows", label: "Мойка окон", price: 18, hasQty: true },
+// All extras support quantity — unified for a consistent, ordered list
+const EXTRAS_CLEANING: { value: string; label: string; price: number }[] = [
+  { value: "windows", label: "Мойка окон", price: 18 },
+  { value: "balcony", label: "Балкон", price: 30 },
   { value: "fridge", label: "Холодильник изнутри", price: 23 },
   { value: "oven", label: "Духовка", price: 18 },
-  { value: "balcony", label: "Балкон", price: 30, hasQty: true },
   { value: "ironing", label: "Глажка (1 ч)", price: 27 },
 ];
 
-const EXTRAS_DRY: { value: string; label: string; price: number; hasQty?: boolean }[] = [
-  { value: "sofa2", label: "Диван 2-местный", price: 75, hasQty: true },
-  { value: "sofa3", label: "Диван 3-местный", price: 95, hasQty: true },
-  { value: "sofa_corner", label: "Угловой диван", price: 120, hasQty: true },
-  { value: "mat1_1", label: "Матрас 1-сп (1 ст.)", price: 60, hasQty: true },
-  { value: "mat2_1", label: "Матрас 2-сп (1 ст.)", price: 90, hasQty: true },
-  { value: "chair", label: "Кресло", price: 45, hasQty: true },
-  { value: "stool", label: "Стул", price: 18, hasQty: true },
+const EXTRAS_DRY: { value: string; label: string; price: number }[] = [
+  { value: "sofa2", label: "Диван 2-местный", price: 75 },
+  { value: "sofa3", label: "Диван 3-местный", price: 95 },
+  { value: "sofa_corner", label: "Угловой диван", price: 120 },
+  { value: "mat1_1", label: "Матрас 1-сп (1 ст.)", price: 60 },
+  { value: "mat2_1", label: "Матрас 2-сп (1 ст.)", price: 90 },
+  { value: "chair", label: "Кресло", price: 45 },
+  { value: "stool", label: "Стул", price: 18 },
 ];
 
 const TIME_SLOTS = [
@@ -161,38 +161,6 @@ function QtyStepper({
   );
 }
 
-// Simple toggle for extras without qty
-function ExtraToggle({
-  active,
-  onToggle,
-  label,
-  price,
-}: {
-  active: boolean;
-  onToggle: () => void;
-  label: string;
-  price: number;
-}) {
-  return (
-    <button
-      onClick={onToggle}
-      style={{
-        background: active ? "#ECFDF5" : "white",
-        border: `1.5px solid ${active ? "#00C9A7" : "#E2EDF4"}`,
-        borderRadius: 10,
-        padding: "7px 12px",
-        fontSize: 12,
-        fontWeight: active ? 600 : 400,
-        color: active ? "#00875A" : "#475569",
-        cursor: "pointer",
-        transition: "all 0.15s",
-      }}
-    >
-      {label} +{price} BYN
-    </button>
-  );
-}
-
 export default function OrderTab({ user, preselectedService, onServiceChange }: OrderTabProps) {
   const [step, setStep] = useState<Step>("calc");
 
@@ -214,58 +182,44 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [phoneRequested, setPhoneRequested] = useState(false);
+  const [showPhoneHint, setShowPhoneHint] = useState(false);
 
   const price = calcPrice(serviceType, area, extrasMap);
 
-  // Telegram fires "contactRequested" event after user approves requestContact()
-  // eventData: { status: 'sent'|'cancelled', contact?: { phone_number, first_name, ... } }
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  const requestContact = useCallback(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tg = (window as any)?.Telegram?.WebApp;
-    if (!tg?.onEvent) return;
+    if (!tg || typeof tg.requestContact !== "function") return;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tg.requestContact((sent: boolean, data?: any) => {
+      if (!sent) return;
+      const rawPhone: string | undefined =
+        data?.contact?.phone_number ?? data?.phone_number;
+      if (rawPhone) {
+        setPhone(rawPhone.startsWith("+") ? rawPhone : `+${rawPhone}`);
+        setShowPhoneHint(false);
+      }
+    });
+
+    // Also listen for the event as fallback
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handler = (eventData: any) => {
       if (eventData?.status !== "sent") return;
       const rawPhone: string | undefined =
-        eventData?.contact?.phone_number ??   // standard path
-        eventData?.phone_number;              // fallback
+        eventData?.contact?.phone_number ?? eventData?.phone_number;
       if (rawPhone) {
-        const formatted = rawPhone.startsWith("+") ? rawPhone : `+${rawPhone}`;
-        setPhone(formatted);
-        setPhoneRequested(true);
+        setPhone(rawPhone.startsWith("+") ? rawPhone : `+${rawPhone}`);
+        setShowPhoneHint(false);
       }
     };
-
     tg.onEvent("contactRequested", handler);
-    return () => tg.offEvent?.("contactRequested", handler);
+    setTimeout(() => tg.offEvent?.("contactRequested", handler), 30000);
   }, []);
 
-  const requestContact = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tg = (window as any)?.Telegram?.WebApp;
-    if (!tg) return;
-
-    if (typeof tg.requestContact === "function") {
-      // Bot API 6.9+ — opens native share-contact dialog.
-      // The callback receives (sent: boolean, data?: { contact: { phone_number, ... } })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tg.requestContact((sent: boolean, data?: any) => {
-        if (!sent) return;
-        // Try callback data first (most reliable path)
-        const rawPhone: string | undefined =
-          data?.contact?.phone_number ??
-          data?.phone_number;
-        if (rawPhone) {
-          setPhone(rawPhone.startsWith("+") ? rawPhone : `+${rawPhone}`);
-          setPhoneRequested(true);
-        }
-        // If no data in callback, the "contactRequested" useEffect will catch it
-      });
-    }
-  };
+  const handlePhoneFocus = useCallback(() => {
+    if (!phone) setShowPhoneHint(true);
+  }, [phone]);
 
   const setExtraQty = useCallback((key: string, qty: number) => {
     setExtrasMap((prev) => {
@@ -274,18 +228,6 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
         delete next[key];
       } else {
         next[key] = qty;
-      }
-      return next;
-    });
-  }, []);
-
-  const toggleExtra = useCallback((key: string) => {
-    setExtrasMap((prev) => {
-      const next = { ...prev };
-      if (next[key]) {
-        delete next[key];
-      } else {
-        next[key] = 1;
       }
       return next;
     });
@@ -546,32 +488,22 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             </div>
           )}
 
-          {/* Extras with quantity */}
+          {/* Extras — unified quantity list, sequentially ordered */}
           {serviceType !== "specialized" && (
             <div style={{ marginBottom: 20 }}>
               <label style={labelStyle}>
                 {serviceType === "dry-cleaning" ? "Предметы" : "Дополнительно"}
               </label>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {extrasListForType.map((e) =>
-                  e.hasQty ? (
-                    <QtyStepper
-                      key={e.value}
-                      qty={extrasMap[e.value] ?? 0}
-                      onChange={(n) => setExtraQty(e.value, n)}
-                      label={e.label}
-                      price={e.price}
-                    />
-                  ) : (
-                    <ExtraToggle
-                      key={e.value}
-                      active={(extrasMap[e.value] ?? 0) > 0}
-                      onToggle={() => toggleExtra(e.value)}
-                      label={e.label}
-                      price={e.price}
-                    />
-                  )
-                )}
+                {extrasListForType.map((e) => (
+                  <QtyStepper
+                    key={e.value}
+                    qty={extrasMap[e.value] ?? 0}
+                    onChange={(n) => setExtraQty(e.value, n)}
+                    label={e.label}
+                    price={e.price}
+                  />
+                ))}
               </div>
             </div>
           )}
@@ -653,57 +585,54 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             />
           </div>
 
-          {/* Phone with Telegram request_contact */}
-          <div style={{ marginBottom: 14 }}>
+          {/* Phone with autofill hint */}
+          <div style={{ marginBottom: 14, position: "relative" }}>
             <label style={labelStyle}>Телефон *</label>
-            <div style={{ display: "flex", gap: 8 }}>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+375 (44) 478-93-60"
-                style={{ ...inputStyle, flex: 1 }}
-              />
-              {!phoneRequested && (
-                <button
-                  onClick={requestContact}
-                  title="Поделиться номером из Telegram"
-                  style={{
-                    background: "#EFF9FF",
-                    border: "1.5px solid #00B4D8",
-                    borderRadius: 12,
-                    padding: "0 12px",
-                    cursor: "pointer",
-                    flexShrink: 0,
-                    fontSize: 18,
-                    color: "#0077B6",
-                  }}
-                >
-                  📲
-                </button>
-              )}
-              {phoneRequested && (
-                <div
-                  style={{
-                    background: "#ECFDF5",
-                    border: "1.5px solid #00C9A7",
-                    borderRadius: 12,
-                    padding: "0 12px",
-                    display: "flex",
-                    alignItems: "center",
-                    flexShrink: 0,
-                    fontSize: 14,
-                    color: "#00875A",
-                    fontWeight: 600,
-                  }}
-                >
-                  ✓
+            <input
+              type="tel"
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => { setPhone(e.target.value); setShowPhoneHint(false); }}
+              onFocus={handlePhoneFocus}
+              onBlur={() => setTimeout(() => setShowPhoneHint(false), 150)}
+              placeholder="+375 (__) ___-__-__"
+              autoComplete="tel"
+              name="tel"
+              style={inputStyle}
+            />
+            {showPhoneHint && !phone && (
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { requestContact(); setShowPhoneHint(false); }}
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top: "100%",
+                  marginTop: 6,
+                  background: "white",
+                  border: "1.5px solid #00B4D8",
+                  borderRadius: 12,
+                  padding: "10px 14px",
+                  boxShadow: "0 8px 20px rgba(0,119,182,0.18)",
+                  zIndex: 20,
+                  animation: "fadeUp 0.2s ease",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  textAlign: "left" as const,
+                }}
+              >
+                <span style={{ fontSize: 18 }}>📱</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: "#0077B6", fontWeight: 600, fontSize: 13 }}>Автозаполнить мобильный</div>
+                  <div style={{ color: "#94A3B8", fontSize: 11 }}>Подставим номер из вашего Telegram</div>
                 </div>
-              )}
-            </div>
-            <p style={{ color: "#94A3B8", fontSize: 11, marginTop: 4 }}>
-              📲 Нажмите на иконку, чтобы вставить номер из Telegram
-            </p>
+                <span style={{ color: "#00B4D8", fontSize: 18 }}>›</span>
+              </button>
+            )}
           </div>
 
           {/* Contact preference */}

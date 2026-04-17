@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { TelegramUser } from "@/types/telegram";
 import type { TabId } from "@/app/tma/page";
 import { services } from "@/lib/data/services";
@@ -10,6 +11,13 @@ interface HomeTabProps {
   onGoToOrder: (serviceSlug?: string) => void;
   onTabChange: (tab: TabId) => void;
 }
+
+type ContactSheet = null | {
+  kind: "phone" | "email";
+  title: string;
+  value: string;
+  actions: { icon: string; label: string; href?: string; onClick?: () => void }[];
+};
 
 const ICON_MAP: Record<string, string> = {
   Home: "🏠",
@@ -32,6 +40,36 @@ const POPULAR = services.slice(0, 3);
 
 export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps) {
   const greeting = user?.first_name ? `Привет, ${user.first_name}! 👋` : "Добро пожаловать! 👋";
+  const [sheet, setSheet] = useState<ContactSheet>(null);
+
+  const copy = (txt: string) => {
+    try { navigator.clipboard?.writeText(txt); } catch {}
+  };
+
+  const openPhoneSheet = () => {
+    setSheet({
+      kind: "phone",
+      title: "Связаться с PrimeClean",
+      value: "+375 (44) 478-93-60",
+      actions: [
+        { icon: "📞", label: "Позвонить", href: "tel:+375444789360" },
+        { icon: "💬", label: "Написать в Telegram", href: "https://t.me/primeclean_bybot" },
+        { icon: "📋", label: "Скопировать номер", onClick: () => copy("+375444789360") },
+      ],
+    });
+  };
+
+  const openEmailSheet = () => {
+    setSheet({
+      kind: "email",
+      title: "Написать нам",
+      value: "info@primeclean.by",
+      actions: [
+        { icon: "✉️", label: "Открыть почту", href: "mailto:info@primeclean.by" },
+        { icon: "📋", label: "Скопировать email", onClick: () => copy("info@primeclean.by") },
+      ],
+    });
+  };
 
   return (
     <div style={{ paddingBottom: 24 }}>
@@ -271,32 +309,135 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
           }}
         >
           {[
-            { icon: "📞", label: "Телефон", value: "+375 (44) 478-93-60", href: "tel:+375444789360" },
-            { icon: "✉️", label: "Email", value: "info@primeclean.by", href: "mailto:info@primeclean.by" },
-            { icon: "📍", label: "Адрес", value: "ул. Немига, 5, Минск", href: undefined },
+            { icon: "📞", label: "Телефон", value: "+375 (44) 478-93-60", onClick: openPhoneSheet, action: "Связаться" },
+            { icon: "✉️", label: "Email", value: "info@primeclean.by", onClick: openEmailSheet, action: "Написать" },
           ].map((c, i, arr) => (
-            <a
+            <button
               key={c.label}
-              href={c.href}
+              onClick={c.onClick}
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
                 padding: "14px 16px",
                 borderBottom: i < arr.length - 1 ? "1px solid #F1F5F9" : "none",
-                textDecoration: "none",
-                color: "inherit",
+                background: "white",
+                border: "none",
+                width: "100%",
+                textAlign: "left",
+                cursor: "pointer",
+                transition: "background 0.15s",
               }}
             >
               <span style={{ fontSize: 20 }}>{c.icon}</span>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div style={{ color: "#94A3B8", fontSize: 11, fontWeight: 500 }}>{c.label}</div>
                 <div style={{ color: "#1A2332", fontSize: 14, fontWeight: 500 }}>{c.value}</div>
               </div>
-            </a>
+              <span style={{ color: "#00B4D8", fontSize: 12, fontWeight: 600, flexShrink: 0 }}>{c.action} →</span>
+            </button>
           ))}
         </div>
       </div>
+
+      {/* Action sheet for phone/email */}
+      {sheet && (
+        <>
+          <div
+            onClick={() => setSheet(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(15,23,42,0.45)",
+              zIndex: 100,
+              animation: "fadeIn 0.2s ease",
+            }}
+          />
+          <div
+            role="dialog"
+            style={{
+              position: "fixed",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: "white",
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              padding: "8px 16px calc(24px + env(safe-area-inset-bottom))",
+              zIndex: 101,
+              animation: "slideUp 0.25s cubic-bezier(0.4,0,0.2,1)",
+              boxShadow: "0 -8px 32px rgba(0,0,0,0.18)",
+            }}
+          >
+            <div style={{ width: 40, height: 4, background: "#E2EDF4", borderRadius: 4, margin: "6px auto 12px" }} />
+            <div style={{ textAlign: "center", marginBottom: 14 }}>
+              <div style={{ color: "#1A2332", fontSize: 16, fontWeight: 700, marginBottom: 2 }}>{sheet.title}</div>
+              <div style={{ color: "#94A3B8", fontSize: 13 }}>{sheet.value}</div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {sheet.actions.map((a) => {
+                const isPrimary = a === sheet.actions[0];
+                const Comp = a.href ? "a" : "button";
+                return (
+                  <Comp
+                    key={a.label}
+                    href={a.href}
+                    onClick={() => {
+                      a.onClick?.();
+                      setTimeout(() => setSheet(null), a.href ? 0 : 400);
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      padding: "14px 16px",
+                      border: `1.5px solid ${isPrimary ? "#00B4D8" : "#E2EDF4"}`,
+                      background: isPrimary ? "linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)" : "white",
+                      color: isPrimary ? "white" : "#1A2332",
+                      fontWeight: 600,
+                      fontSize: 15,
+                      borderRadius: 14,
+                      textDecoration: "none",
+                      cursor: "pointer",
+                      width: "100%",
+                      textAlign: "left" as const,
+                    }}
+                  >
+                    <span style={{ fontSize: 20 }}>{a.icon}</span>
+                    <span style={{ flex: 1 }}>{a.label}</span>
+                    <span style={{ opacity: 0.6 }}>›</span>
+                  </Comp>
+                );
+              })}
+              <button
+                onClick={() => setSheet(null)}
+                style={{
+                  background: "#F1F5F9",
+                  border: "none",
+                  borderRadius: 14,
+                  padding: "13px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#475569",
+                  cursor: "pointer",
+                  marginTop: 4,
+                }}
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+          <style>{`
+            @keyframes slideUp {
+              from { transform: translateY(100%); }
+              to { transform: translateY(0); }
+            }
+            @keyframes fadeIn {
+              from { opacity: 0; } to { opacity: 1; }
+            }
+          `}</style>
+        </>
+      )}
 
       {/* УНП footer */}
       <div

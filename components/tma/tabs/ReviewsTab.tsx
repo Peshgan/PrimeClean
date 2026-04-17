@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { TelegramUser } from "@/types/telegram";
+import { services } from "@/lib/data/services";
 
 interface ReviewItem {
   id: string | number;
@@ -13,6 +14,23 @@ interface ReviewItem {
   text: string;
   photo_url?: string | null;
 }
+
+const RU_MONTHS = [
+  "января", "февраля", "марта", "апреля", "мая", "июня",
+  "июля", "августа", "сентября", "октября", "ноября", "декабря",
+];
+
+function formatRuDate(raw: string): string {
+  if (!raw) return "";
+  // Already human-readable ("15 марта 2025") — keep as is
+  if (/^\d+\s+[а-яА-Я]+\s+\d{4}$/.test(raw.trim())) return raw;
+  const d = new Date(raw.includes("T") ? raw : `${raw}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return raw;
+  return `${d.getDate()} ${RU_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+const MAX_PHOTO_MB = 10;
+const MAX_PHOTO_BYTES = MAX_PHOTO_MB * 1024 * 1024;
 
 interface ReviewsTabProps {
   user?: TelegramUser | null;
@@ -108,10 +126,11 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      setFormError("Фото не должно превышать 2 МБ");
+    if (file.size > MAX_PHOTO_BYTES) {
+      setFormError(`Фото не должно превышать ${MAX_PHOTO_MB} МБ`);
       return;
     }
+    setFormError("");
     const reader = new FileReader();
     reader.onload = (ev) => {
       const b64 = ev.target?.result as string;
@@ -247,10 +266,19 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
               <input type="text" value={authorName} onChange={(e) => setAuthorName(e.target.value)} placeholder="Иван Иванов" style={inputStyle} />
             </div>
 
-            {/* Service */}
+            {/* Service dropdown */}
             <div style={{ marginBottom: 14 }}>
               <label style={labelStyle}>Услуга</label>
-              <input type="text" value={serviceName} onChange={(e) => setServiceName(e.target.value)} placeholder="Уборка квартиры, химчистка..." style={inputStyle} />
+              <select
+                value={serviceName}
+                onChange={(e) => setServiceName(e.target.value)}
+                style={{ ...inputStyle, appearance: "none" as const, backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%2394A3B8' d='M6 8L0 0h12z'/></svg>\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center", paddingRight: 36 }}
+              >
+                <option value="">— Выберите услугу —</option>
+                {services.map((s) => (
+                  <option key={s.slug} value={s.shortTitle}>{s.shortTitle}</option>
+                ))}
+              </select>
             </div>
 
             {/* Text */}
@@ -287,7 +315,7 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                   }}
                 >
-                  📷 Добавить фото (до 2 МБ)
+                  📷 Добавить фото (до {MAX_PHOTO_MB} МБ)
                 </button>
               ) : (
                 <div style={{ position: "relative", display: "inline-block" }}>
@@ -322,7 +350,7 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
 
             {/* Moderation notice */}
             <p style={{ color: "#94A3B8", fontSize: 12, marginBottom: 14, lineHeight: 1.5 }}>
-              ℹ️ Отзыв будет опубликован после проверки модератором
+              ℹ️ Отзыв будет опубликован в течение часа
             </p>
 
             {/* Buttons */}
@@ -355,7 +383,7 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
             <div style={{ fontSize: 44, marginBottom: 10 }}>✅</div>
             <h3 style={{ color: "#065F46", fontWeight: 700, fontSize: 17, marginBottom: 8 }}>Отзыв отправлен!</h3>
             <p style={{ color: "#047857", fontSize: 14, lineHeight: 1.5, marginBottom: 16 }}>
-              Спасибо! Ваш отзыв появится после проверки модератором.
+              Спасибо! Ваш отзыв появится в течение часа.
             </p>
             <button onClick={resetForm} style={{ background: "#00875A", color: "white", border: "none", borderRadius: 12, padding: "11px 28px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
               Закрыть
@@ -395,7 +423,7 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
                 <div style={{ color: "#1A2332", fontWeight: 600, fontSize: 14, marginBottom: 2 }}>{review.name}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <StarDisplay rating={review.rating} />
-                  <span style={{ color: "#94A3B8", fontSize: 11 }}>{review.date}</span>
+                  <span style={{ color: "#94A3B8", fontSize: 11 }}>{formatRuDate(review.date)}</span>
                 </div>
               </div>
             </div>

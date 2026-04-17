@@ -12,10 +12,24 @@ interface ProfileTabProps {
 interface BookingRecord {
   id: number;
   service_name: string;
+  service_slug: string;
   booking_date: string;
   booking_time: string;
   price_estimate: number | null;
   status: string;
+  created_at: string;
+}
+
+const RU_MONTHS = [
+  "января", "февраля", "марта", "апреля", "мая", "июня",
+  "июля", "августа", "сентября", "октября", "ноября", "декабря",
+];
+
+function formatRuDate(raw: string, withYear = true): string {
+  if (!raw) return "";
+  const d = new Date(raw.includes("T") ? raw : `${raw}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return raw;
+  return `${d.getDate()} ${RU_MONTHS[d.getMonth()]}${withYear ? ` ${d.getFullYear()}` : ""}`;
 }
 
 const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }> = {
@@ -29,6 +43,7 @@ const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }>
 export default function ProfileTab({ user, webApp }: ProfileTabProps) {
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState<"all" | "active" | "history">("all");
 
   useEffect(() => {
     if (!user?.id) return;
@@ -39,6 +54,24 @@ export default function ProfileTab({ user, webApp }: ProfileTabProps) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [user?.id]);
+
+  const today = new Date().toISOString().split("T")[0];
+  const activeStatuses = new Set(["new", "confirmed", "in_progress"]);
+
+  const filtered = bookings.filter((b) => {
+    if (filter === "active") return activeStatuses.has(b.status) && b.booking_date >= today;
+    if (filter === "history") return !activeStatuses.has(b.status) || b.booking_date < today;
+    return true;
+  });
+
+  const counts = {
+    total: bookings.length,
+    active: bookings.filter((b) => activeStatuses.has(b.status) && b.booking_date >= today).length,
+    done: bookings.filter((b) => b.status === "done").length,
+    spent: bookings
+      .filter((b) => b.status === "done")
+      .reduce((s, b) => s + (b.price_estimate ?? 0), 0),
+  };
 
   const initials = user
     ? `${user.first_name?.[0] ?? ""}${user.last_name?.[0] ?? ""}`.toUpperCase() || "?"
@@ -161,18 +194,60 @@ export default function ProfileTab({ user, webApp }: ProfileTabProps) {
           ))}
         </div>
 
+        {/* Order stats */}
+        {user?.id && bookings.length > 0 && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 14 }}>
+            <div style={{ background: "white", border: "1px solid #E2EDF4", borderRadius: 12, padding: "10px", textAlign: "center" }}>
+              <div style={{ color: "#0077B6", fontSize: 18, fontWeight: 800, fontFamily: "var(--font-montserrat,'Montserrat',sans-serif)" }}>{counts.total}</div>
+              <div style={{ color: "#94A3B8", fontSize: 10, marginTop: 2 }}>Всего</div>
+            </div>
+            <div style={{ background: "white", border: "1px solid #E2EDF4", borderRadius: 12, padding: "10px", textAlign: "center" }}>
+              <div style={{ color: "#00875A", fontSize: 18, fontWeight: 800, fontFamily: "var(--font-montserrat,'Montserrat',sans-serif)" }}>{counts.done}</div>
+              <div style={{ color: "#94A3B8", fontSize: 10, marginTop: 2 }}>Выполнено</div>
+            </div>
+            <div style={{ background: "white", border: "1px solid #E2EDF4", borderRadius: 12, padding: "10px", textAlign: "center" }}>
+              <div style={{ color: "#B45309", fontSize: 18, fontWeight: 800, fontFamily: "var(--font-montserrat,'Montserrat',sans-serif)" }}>{counts.spent}</div>
+              <div style={{ color: "#94A3B8", fontSize: 10, marginTop: 2 }}>BYN</div>
+            </div>
+          </div>
+        )}
+
         {/* My orders */}
-        <h2
-          style={{
-            color: "#1A2332",
-            fontSize: 18,
-            fontWeight: 700,
-            marginBottom: 12,
-            fontFamily: "var(--font-montserrat, 'Montserrat', sans-serif)",
-          }}
-        >
-          Мои заявки
-        </h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <h2
+            style={{
+              color: "#1A2332",
+              fontSize: 18,
+              fontWeight: 700,
+              margin: 0,
+              fontFamily: "var(--font-montserrat, 'Montserrat', sans-serif)",
+            }}
+          >
+            История заказов
+          </h2>
+          {bookings.length > 0 && (
+            <div style={{ display: "flex", gap: 4, background: "white", border: "1px solid #E2EDF4", borderRadius: 8, padding: 2 }}>
+              {([
+                { id: "all", label: "Все" },
+                { id: "active", label: "Активные" },
+                { id: "history", label: "Архив" },
+              ] as const).map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setFilter(f.id)}
+                  style={{
+                    background: filter === f.id ? "linear-gradient(135deg,#00B4D8,#0077B6)" : "transparent",
+                    color: filter === f.id ? "white" : "#475569",
+                    border: "none", borderRadius: 6, padding: "4px 8px",
+                    fontSize: 11, fontWeight: 600, cursor: "pointer",
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {!user?.id ? (
           <div
@@ -220,9 +295,13 @@ export default function ProfileTab({ user, webApp }: ProfileTabProps) {
               Оформите первый заказ во вкладке «Заказать»
             </div>
           </div>
+        ) : filtered.length === 0 ? (
+          <div style={{ background: "white", borderRadius: 16, border: "1px solid #E2EDF4", padding: "24px 16px", textAlign: "center", color: "#94A3B8", fontSize: 13 }}>
+            В этой категории пусто
+          </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {bookings.map((b) => {
+            {filtered.map((b) => {
               const st = STATUS_LABEL[b.status] ?? STATUS_LABEL.new;
               return (
                 <div
@@ -232,6 +311,7 @@ export default function ProfileTab({ user, webApp }: ProfileTabProps) {
                     borderRadius: 14,
                     border: "1px solid #E2EDF4",
                     padding: "14px 16px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
                   }}
                 >
                   <div
@@ -242,12 +322,12 @@ export default function ProfileTab({ user, webApp }: ProfileTabProps) {
                       marginBottom: 8,
                     }}
                   >
-                    <div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ color: "#1A2332", fontWeight: 600, fontSize: 14, marginBottom: 2 }}>
                         {b.service_name ?? "Услуга"}
                       </div>
                       <div style={{ color: "#94A3B8", fontSize: 12 }}>
-                        #{b.id} · {b.booking_date} в {b.booking_time}
+                        #{b.id} · {formatRuDate(b.booking_date)} в {b.booking_time}
                       </div>
                     </div>
                     <div
@@ -259,16 +339,24 @@ export default function ProfileTab({ user, webApp }: ProfileTabProps) {
                         fontSize: 11,
                         fontWeight: 600,
                         whiteSpace: "nowrap",
+                        marginLeft: 10,
                       }}
                     >
                       {st.label}
                     </div>
                   </div>
-                  {b.price_estimate && (
-                    <div style={{ color: "#0077B6", fontSize: 13, fontWeight: 600 }}>
-                      ~{b.price_estimate} BYN
-                    </div>
-                  )}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    {b.price_estimate ? (
+                      <div style={{ color: "#0077B6", fontSize: 13, fontWeight: 700 }}>
+                        ~{b.price_estimate} BYN
+                      </div>
+                    ) : <div />}
+                    {b.created_at && (
+                      <div style={{ color: "#CBD5E1", fontSize: 10 }}>
+                        Создана {formatRuDate(b.created_at)}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}

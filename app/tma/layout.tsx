@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 
 export const metadata: Metadata = {
@@ -7,15 +7,33 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  minimumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
+
 export default function TMALayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {/* Load Telegram WebApp SDK before anything else */}
       <Script
         src="https://telegram.org/js/telegram-web-app.js"
         strategy="beforeInteractive"
       />
-      {/* Full-screen overlay that hides the site Header/Footer */}
+      <style>{`
+        html, body {
+          touch-action: manipulation;
+          -webkit-text-size-adjust: 100%;
+          -ms-text-size-adjust: 100%;
+          overscroll-behavior: none;
+        }
+        html, body, #__next { height: 100%; }
+        input, select, textarea { font-size: 16px !important; }
+        * { -webkit-tap-highlight-color: transparent; }
+      `}</style>
       <div
         style={{
           position: "fixed",
@@ -25,6 +43,7 @@ export default function TMALayout({ children }: { children: React.ReactNode }) {
           overflowX: "hidden",
           WebkitOverflowScrolling: "touch",
           background: "#F0FDFF",
+          touchAction: "pan-y",
         }}
       >
         {children}
