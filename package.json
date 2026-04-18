@@ -13,6 +13,7 @@
     "postinstall": "npm rebuild better-sqlite3"
   },
   "dependencies": {
+    "@vercel/speed-insights": "^2.0.0",
     "lucide-react": "^1.8.0",
     "next": "16.2.3",
     "postgres": "^3.4.9",
