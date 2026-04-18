@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 
-
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://primeclean.by";
+
+function verifyWebhook(req: NextRequest): boolean {
+  if (!WEBHOOK_SECRET) return true; // secret not configured — allow all
+  return req.headers.get("x-telegram-bot-api-secret-token") === WEBHOOK_SECRET;
+}
 
 // Admin Telegram IDs (comma-separated in env: ADMIN_TG_IDS=123456,789012)
 function getAdminTgIds(): Set<string> {
@@ -40,6 +45,7 @@ async function answerCallbackQuery(callbackQueryId: string, text?: string) {
 // Always return 200 so Telegram doesn't retry
 export async function POST(req: NextRequest) {
   if (!BOT_TOKEN) return NextResponse.json({ ok: true });
+  if (!verifyWebhook(req)) return NextResponse.json({ ok: true });
 
   let update: Record<string, unknown>;
   try {
