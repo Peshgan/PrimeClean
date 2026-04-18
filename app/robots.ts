@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/spasibo/", "/api/", "/_next/"],
+        disallow: ["/spasibo/", "/api/", "/_next/", "/tma/", "/admin/"],
       },
     ],
     sitemap: "https://primeclean.by/sitemap.xml",

@@ -23,9 +23,12 @@ export async function generateMetadata({
   return {
     title: service.metaTitle,
     description: service.metaDescription,
+    alternates: { canonical: `/uslugi/${service.slug}` },
     openGraph: {
       title: service.metaTitle,
       description: service.metaDescription,
+      url: `https://primeclean.by/uslugi/${service.slug}`,
+      type: "website",
       images: [{ url: service.image, width: 800, alt: service.title }],
     },
   };
@@ -64,10 +67,33 @@ export default async function ServicePage({
     ],
   };
 
+  const serviceSchema = {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    serviceType: service.shortTitle,
+    name: service.title,
+    description: service.metaDescription,
+    provider: { "@id": "https://primeclean.by/#business" },
+    areaServed: { "@type": "City", name: "Минск" },
+    url: `https://primeclean.by/uslugi/${service.slug}`,
+    image: service.image,
+    offers: service.tiers
+      .filter((t) => t.price > 0)
+      .map((t) => ({
+        "@type": "Offer",
+        name: t.name,
+        price: String(t.price),
+        priceCurrency: "BYN",
+        availability: "https://schema.org/InStock",
+        url: `https://primeclean.by/uslugi/${service.slug}`,
+      })),
+  };
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
 
       {/* Hero */}
       <section className="pt-28 pb-16 bg-gradient-to-br from-[#F0FDFF] to-white">

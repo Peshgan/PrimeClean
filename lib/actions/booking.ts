@@ -14,6 +14,9 @@ const BookingSchema = z.object({
   bookingTime: z.string().default("Любое время"),
   area: z.string().optional(),
   comment: z.string().max(500).optional(),
+  consent: z
+    .string()
+    .refine((v) => v === "on" || v === "true", "Необходимо согласие на обработку персональных данных"),
 });
 
 export type BookingFormState = {
@@ -35,6 +38,7 @@ export async function createBooking(
     bookingTime: formData.get("bookingTime")?.toString() || "Любое время",
     area: formData.get("area")?.toString() || undefined,
     comment: formData.get("comment")?.toString() || undefined,
+    consent: formData.get("consent")?.toString() || "",
   };
 
   const parsed = BookingSchema.safeParse(raw);

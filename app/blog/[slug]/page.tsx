@@ -12,18 +12,36 @@ export async function generateStaticParams() {
   return blogPosts.map((post) => ({ slug: post.slug }));
 }
 
+const RU_MONTHS: Record<string, string> = {
+  "января": "01", "февраля": "02", "марта": "03", "апреля": "04",
+  "мая": "05", "июня": "06", "июля": "07", "августа": "08",
+  "сентября": "09", "октября": "10", "ноября": "11", "декабря": "12",
+};
+
+function toIsoDate(ruDate: string): string {
+  const m = ruDate.toLowerCase().match(/(\d{1,2})\s+([а-я]+)\s+(\d{4})/);
+  if (!m) return new Date().toISOString().slice(0, 10);
+  const day = m[1].padStart(2, "0");
+  const month = RU_MONTHS[m[2]] ?? "01";
+  return `${m[3]}-${month}-${day}`;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = getPostBySlug(slug);
   if (!post) return {};
+  const iso = toIsoDate(post.date);
   return {
     title: post.title,
     description: post.excerpt,
+    alternates: { canonical: `/blog/${post.slug}` },
     openGraph: {
       title: post.title,
       description: post.excerpt,
+      url: `https://primeclean.by/blog/${post.slug}`,
       type: "article",
-      publishedTime: post.date,
+      publishedTime: iso,
+      authors: ["PrimeClean"],
     },
   };
 }
@@ -34,9 +52,41 @@ export default async function BlogArticlePage({ params }: Props) {
   if (!post) notFound();
 
   const related = blogPosts.filter((p) => p.slug !== post.slug).slice(0, 3);
+  const iso = toIsoDate(post.date);
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: iso,
+    dateModified: iso,
+    author: { "@type": "Organization", name: "PrimeClean", url: "https://primeclean.by" },
+    publisher: {
+      "@type": "Organization",
+      name: "PrimeClean",
+      logo: { "@type": "ImageObject", url: "https://primeclean.by/og-image.jpg" },
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": `https://primeclean.by/blog/${post.slug}` },
+    inLanguage: "ru-BY",
+    articleSection: post.category,
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Главная", item: "https://primeclean.by/" },
+      { "@type": "ListItem", position: 2, name: "Блог", item: "https://primeclean.by/blog/" },
+      { "@type": "ListItem", position: 3, name: post.title, item: `https://primeclean.by/blog/${post.slug}/` },
+    ],
+  };
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+
       {/* Hero */}
       <section className="pt-28 pb-10 bg-gradient-to-br from-[#F0FDFF] to-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">

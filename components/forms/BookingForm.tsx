@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { createBooking, type BookingFormState } from "@/lib/actions/booking";
@@ -126,6 +127,40 @@ export default function BookingForm({ preselectedService, compact = false }: Boo
               className={`${inputClass} resize-none`}
             />
           </div>
+        )}
+      </div>
+
+      {/* Consent */}
+      <div className="mt-4">
+        <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#475569] leading-snug">
+          <input
+            type="checkbox"
+            name="consent"
+            defaultChecked
+            required
+            className="mt-0.5 w-4 h-4 accent-[#00B4D8] cursor-pointer shrink-0"
+          />
+          <span>
+            Я согласен на обработку моих персональных данных согласно{" "}
+            <Link
+              href="/politika-konfidencialnosti"
+              target="_blank"
+              className="text-[#0077B6] hover:underline"
+            >
+              Политике конфиденциальности
+            </Link>{" "}
+            и принимаю условия{" "}
+            <Link href="/oferta" target="_blank" className="text-[#0077B6] hover:underline">
+              Публичной оферты
+            </Link>
+            .
+          </span>
+        </label>
+        {state.errors?.consent && (
+          <p className={errorClass}>
+            <AlertCircle size={13} />
+            {state.errors?.consent?.[0]}
+          </p>
         )}
       </div>
 

@@ -120,7 +120,7 @@ export default function Footer() {
               </li>
               <li className="flex items-start gap-3 text-[#94A3B8] text-sm">
                 <MapPin size={15} className="mt-0.5 flex-shrink-0 text-[#00B4D8]" />
-                г. Минск, ул. Немига, 5
+                г. Минск (выезд в пределах МКАД)
               </li>
               <li className="flex items-start gap-3 text-[#94A3B8] text-sm">
                 <Clock size={15} className="mt-0.5 flex-shrink-0 text-[#00B4D8]" />
@@ -136,15 +136,23 @@ export default function Footer() {
 
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
             <p className="text-[#94A3B8] text-sm">
               © {new Date().getFullYear()} PrimeClean. Все права защищены.
             </p>
             <span className="hidden sm:inline text-white/20">·</span>
-            <p className="text-[#64748B] text-xs">УНП ВЕ89624282</p>
+            <p className="text-[#64748B] text-xs">
+              Самозанятый · плательщик НПД · УНП ВЕ89624282
+            </p>
           </div>
-          <div className="flex gap-6">
-            <Link href="/privacy" className="text-[#94A3B8] hover:text-white text-sm transition-colors">
+          <div className="flex flex-wrap gap-5 justify-center">
+            <Link href="/oferta" className="text-[#94A3B8] hover:text-white text-sm transition-colors">
+              Публичная оферта
+            </Link>
+            <Link
+              href="/politika-konfidencialnosti"
+              className="text-[#94A3B8] hover:text-white text-sm transition-colors"
+            >
               Политика конфиденциальности
             </Link>
           </div>

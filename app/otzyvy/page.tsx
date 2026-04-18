@@ -8,12 +8,29 @@ export const metadata: Metadata = {
   title: "Отзывы о клининговой компании PrimeClean — Минск",
   description:
     "Реальные отзывы клиентов PrimeClean. Средняя оценка 4.9 из 5 по 127 отзывам. Уборка квартир и офисов в Минске — читайте, что говорят наши клиенты.",
+  alternates: { canonical: "/otzyvy" },
+  openGraph: {
+    title: "Отзывы клиентов PrimeClean",
+    description: "4.9 из 5 — реальные отзывы об уборке квартир и офисов в Минске.",
+    url: "https://primeclean.by/otzyvy",
+    type: "website",
+  },
 };
 
 const reviewsSchema = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
+  "@id": "https://primeclean.by/#business",
   name: "PrimeClean",
+  url: "https://primeclean.by",
+  image: "https://primeclean.by/og-image.jpg",
+  telephone: "+375444789360",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Минск",
+    addressCountry: "BY",
+  },
+  priceRange: "80–500 BYN",
   aggregateRating: {
     "@type": "AggregateRating",
     ratingValue: "4.9",
@@ -23,17 +40,28 @@ const reviewsSchema = {
   },
   review: reviews.map((r) => ({
     "@type": "Review",
-    reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 },
+    reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5, worstRating: 1 },
     author: { "@type": "Person", name: r.name },
     datePublished: r.date,
     reviewBody: r.text,
+    itemReviewed: { "@type": "Service", name: r.service ?? "Клининг" },
   })),
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Главная", item: "https://primeclean.by/" },
+    { "@type": "ListItem", position: 2, name: "Отзывы", item: "https://primeclean.by/otzyvy/" },
+  ],
 };
 
 export default function ReviewsPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(reviewsSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Hero */}
       <section className="pt-28 pb-16 bg-gradient-to-br from-[#F0FDFF] to-white">
