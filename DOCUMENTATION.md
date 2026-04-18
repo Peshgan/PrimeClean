@@ -233,11 +233,12 @@ Railway volume хранит `data/` между деплоями, но **репл
 
 Находит заявки с `reminder_sent = 0`, `status in (new, confirmed)` и временем в интервале «сейчас + 55…65 минут», шлёт сообщение клиенту и ставит `reminder_sent = 1`.
 
-Нужен внешний планировщик, т.к. Railway не имеет встроенного cron:
+Нужен внешний планировщик (Vercel Hobby-план не даёт cron чаще раза в сутки, встроенного cron у Railway тоже нет):
 
-- **Вариант 1 (Vercel Cron)** — если деплой на Vercel, `vercel.json` уже настроен (каждые 5 минут).
-- **Вариант 2 (cron-job.org)** — создать задачу, пинговать `https://primeclean.by/api/cron/reminders?secret=$CRON_SECRET` каждые 5 минут.
-- **Вариант 3 (Railway cron)** — через Railway Schedules добавить сервис-задачу с командой `curl -H "x-cron-secret: $CRON_SECRET" https://primeclean.by/api/cron/reminders`.
+- **Вариант 1 (рекомендуемый) — cron-job.org.** Бесплатно, до минуты. Создай задачу: URL `https://primeclean.by/api/cron/reminders?secret=<CRON_SECRET>`, расписание `*/5 * * * *`.
+- **Вариант 2 — Railway Schedules.** В проекте Railway добавь сервис типа «cron» с командой `curl -H "x-cron-secret: $CRON_SECRET" https://primeclean.by/api/cron/reminders` и расписанием `*/5 * * * *`.
+- **Вариант 3 — Vercel Pro.** Только на платном тарифе, т.к. Hobby ограничен 1 запуском в сутки. Файл `vercel.json` с блоком `crons` нужно добавить вручную при апгрейде.
+- **Вариант 4 — UptimeRobot (костыль).** Бесплатный HTTP-мониторинг пингует URL каждые 5 минут — можно натравить на тот же эндпоинт с query-секретом.
 
 ---
 
