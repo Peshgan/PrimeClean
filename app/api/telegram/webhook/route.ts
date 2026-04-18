@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 
+
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://primeclean.by";
 
@@ -70,15 +71,15 @@ export async function POST(req: NextRequest) {
       const rejectMatch = data.match(/^review_reject_(\d+)$/);
 
       if (approveMatch) {
-        const reviewId = approveMatch[1];
-        const db = getDb();
-        db.prepare(`UPDATE reviews SET is_approved = 1 WHERE id = ?`).run(reviewId);
+        const reviewId = Number(approveMatch[1]);
+        const dbSql = await getDb();
+        await dbSql`UPDATE reviews SET is_approved = 1 WHERE id = ${reviewId}`;
         await answerCallbackQuery(cqId, "✅ Отзыв опубликован");
         await sendMessage(chatId, `✅ Отзыв #${reviewId} опубликован.`);
       } else if (rejectMatch) {
-        const reviewId = rejectMatch[1];
-        const db = getDb();
-        db.prepare(`DELETE FROM reviews WHERE id = ?`).run(reviewId);
+        const reviewId = Number(rejectMatch[1]);
+        const dbSql = await getDb();
+        await dbSql`DELETE FROM reviews WHERE id = ${reviewId}`;
         await answerCallbackQuery(cqId, "🗑 Отзыв удалён");
         await sendMessage(chatId, `🗑 Отзыв #${reviewId} удалён.`);
       }
@@ -100,24 +101,24 @@ export async function POST(req: NextRequest) {
 
     // Upsert user
     try {
-      const db = getDb();
-      db.prepare(
-        `INSERT INTO users (telegram_id, first_name, last_name, username, tg_username, tg_user_id)
-         VALUES (?, ?, ?, ?, ?, ?)
-         ON CONFLICT(telegram_id) DO UPDATE SET
-           first_name = excluded.first_name,
-           last_name = excluded.last_name,
-           username = excluded.username,
-           tg_username = excluded.tg_username,
-           tg_user_id = excluded.tg_user_id`
-      ).run(
-        String(from.id),
-        (from.first_name as string) ?? "",
-        (from.last_name as string) ?? null,
-        (from.username as string) ?? null,
-        (from.username as string) ?? null,
-        String(from.id)
-      );
+      const sql = await getDb();
+      await sql`
+        INSERT INTO users (telegram_id, first_name, last_name, username, tg_username, tg_user_id)
+        VALUES (
+          ${String(from.id)},
+          ${(from.first_name as string) ?? ""},
+          ${(from.last_name as string) ?? null},
+          ${(from.username as string) ?? null},
+          ${(from.username as string) ?? null},
+          ${String(from.id)}
+        )
+        ON CONFLICT (telegram_id) DO UPDATE SET
+          first_name = EXCLUDED.first_name,
+          last_name = EXCLUDED.last_name,
+          username = EXCLUDED.username,
+          tg_username = EXCLUDED.tg_username,
+          tg_user_id = EXCLUDED.tg_user_id
+      `;
     } catch {}
 
     const text = ((update.message as Record<string, unknown>)?.text as string) ?? "";
@@ -171,21 +172,13 @@ export async function POST(req: NextRequest) {
       );
     } else if (text === "/status") {
       try {
-        const db = getDb();
-        const bookings = db
-          .prepare(
-            `SELECT id, service_name, booking_date, booking_time, status
-             FROM bookings
-             WHERE user_telegram_id = ?
-             ORDER BY created_at DESC LIMIT 5`
-          )
-          .all(String(from.id)) as Array<{
-          id: number;
-          service_name: string;
-          booking_date: string;
-          booking_time: string;
-          status: string;
-        }>;
+        const sql = await getDb();
+        const bookings = await sql`
+          SELECT id, service_name, booking_date, booking_time, status
+          FROM bookings
+          WHERE user_telegram_id = ${String(from.id)}
+          ORDER BY created_at DESC LIMIT 5
+        `;
 
         if (bookings.length === 0) {
           await sendMessage(
@@ -221,14 +214,12 @@ export async function POST(req: NextRequest) {
         await sendMessage(chatId, "Ошибка при получении заявок. Попробуйте позже.");
       }
     } else if (text === "/pending" && isAdmin(from.id as number)) {
-      // Admin: show pending reviews with approve/reject buttons
       try {
-        const db = getDb();
-        const pending = db
-          .prepare(
-            `SELECT id, author_name, rating, text FROM reviews WHERE is_approved = 0 ORDER BY created_at DESC LIMIT 5`
-          )
-          .all() as Array<{ id: number; author_name: string; rating: number; text: string }>;
+        const sql = await getDb();
+        const pending = await sql`
+          SELECT id, author_name, rating, text FROM reviews
+          WHERE is_approved = 0 ORDER BY created_at DESC LIMIT 5
+        `;
 
         if (pending.length === 0) {
           await sendMessage(chatId, "📭 Нет отзывов на модерации.");

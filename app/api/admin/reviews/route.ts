@@ -1,26 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 
-function checkAdminAuth(req: NextRequest): boolean {
+function checkAuth(req: NextRequest) {
   return req.cookies.get("admin_session")?.value === "1";
 }
 
-// GET /api/admin/reviews — all reviews (pending + approved)
 export async function GET(req: NextRequest) {
-  if (!checkAdminAuth(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const db = getDb();
-    const { searchParams } = new URL(req.url);
-    const filter = searchParams.get("filter") ?? "all"; // all | pending | approved
-
-    let sql = `SELECT * FROM reviews ORDER BY created_at DESC`;
-    if (filter === "pending") sql = `SELECT * FROM reviews WHERE is_approved = 0 ORDER BY created_at DESC`;
-    if (filter === "approved") sql = `SELECT * FROM reviews WHERE is_approved = 1 ORDER BY created_at DESC`;
-
-    const reviews = db.prepare(sql).all();
+    const sql = await getDb();
+    const filter = new URL(req.url).searchParams.get("filter") ?? "all";
+    const reviews = filter === "pending"
+      ? await sql`SELECT * FROM reviews WHERE is_approved = 0 ORDER BY created_at DESC`
+      : filter === "approved"
+      ? await sql`SELECT * FROM reviews WHERE is_approved = 1 ORDER BY created_at DESC`
+      : await sql`SELECT * FROM reviews ORDER BY created_at DESC`;
     return NextResponse.json({ reviews });
   } catch (err) {
     console.error("[GET /api/admin/reviews]", err);
@@ -28,25 +22,19 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// PATCH /api/admin/reviews — approve or reject a review
 export async function PATCH(req: NextRequest) {
-  if (!checkAdminAuth(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  if (!checkAuth(req)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const { id, action } = await req.json(); // action: "approve" | "reject"
+    const { id, action } = await req.json();
     if (!id || !["approve", "reject"].includes(action)) {
       return NextResponse.json({ error: "Некорректные данные" }, { status: 400 });
     }
-
-    const db = getDb();
-
+    const sql = await getDb();
     if (action === "approve") {
-      db.prepare(`UPDATE reviews SET is_approved = 1 WHERE id = ?`).run(id);
+      await sql`UPDATE reviews SET is_approved = 1 WHERE id = ${id}`;
       return NextResponse.json({ success: true, message: "Отзыв опубликован" });
     } else {
-      db.prepare(`DELETE FROM reviews WHERE id = ?`).run(id);
+      await sql`DELETE FROM reviews WHERE id = ${id}`;
       return NextResponse.json({ success: true, message: "Отзыв удалён" });
     }
   } catch (err) {

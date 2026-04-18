@@ -1,100 +1,74 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 
-// Runs every few minutes via external cron (Vercel Cron / cron-job.org / Railway cron).
-// Finds bookings ~1h out that haven't been reminded yet, sends a TG message,
-// and marks reminder_sent = 1 so the same booking is never reminded twice.
-//
-// Security: optionally gated by CRON_SECRET — passed either as header
-// `x-cron-secret: <value>` or query `?secret=<value>`.
-
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CRON_SECRET = process.env.CRON_SECRET;
 
-interface PendingBooking {
-  id: number;
-  user_telegram_id: string;
-  service_name: string | null;
-  booking_date: string;
-  booking_time: string;
-  address: string | null;
-  name: string;
+function checkSecret(req: NextRequest): boolean {
+  if (!CRON_SECRET) return true;
+  const url = new URL(req.url);
+  const auth = req.headers.get("authorization");
+  return (
+    req.headers.get("x-cron-secret") === CRON_SECRET ||
+    url.searchParams.get("secret") === CRON_SECRET ||
+    auth?.slice(7) === CRON_SECRET
+  );
 }
 
 async function sendTg(chatId: string, text: string) {
-  if (!BOT_TOKEN) return { ok: false, reason: "no_token" };
+  if (!BOT_TOKEN) return false;
   try {
     const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
     });
-    const data = await r.json().catch(() => ({}));
-    return { ok: r.ok, data };
-  } catch (err) {
-    return { ok: false, reason: String(err) };
-  }
-}
-
-function checkSecret(req: NextRequest): boolean {
-  if (!CRON_SECRET) return true; // No secret configured — allow
-  const header = req.headers.get("x-cron-secret");
-  const url = new URL(req.url);
-  const query = url.searchParams.get("secret");
-  const auth = req.headers.get("authorization");
-  // Vercel Cron sets Authorization: Bearer <CRON_SECRET>
-  const bearer = auth?.startsWith("Bearer ") ? auth.slice(7) : null;
-  return header === CRON_SECRET || query === CRON_SECRET || bearer === CRON_SECRET;
+    return r.ok;
+  } catch { return false; }
 }
 
 async function runReminders() {
-  const db = getDb();
+  const sql = await getDb();
 
-  // booking_date + booking_time are local strings. SQLite datetime('now') is UTC.
-  // Use datetime(..., 'localtime') to compare safely, OR pass through our own clock.
-  // Window: 55–65 minutes from now in local time.
-  const rows = db
-    .prepare(
-      `SELECT id, user_telegram_id, service_name, booking_date, booking_time, address, name
-       FROM bookings
-       WHERE reminder_sent = 0
-         AND status IN ('new','confirmed')
-         AND user_telegram_id IS NOT NULL AND user_telegram_id != ''
-         AND datetime(booking_date || ' ' || booking_time)
-             BETWEEN datetime('now', 'localtime', '+55 minutes')
-                 AND datetime('now', 'localtime', '+65 minutes')`
-    )
-    .all() as PendingBooking[];
+  // Minsk is UTC+3. bookings stored as local time TEXT.
+  // Find bookings 55-65 min from now in Minsk time.
+  const rows = await sql`
+    SELECT id, user_telegram_id, service_name, booking_date, booking_time, address, name
+    FROM bookings
+    WHERE reminder_sent = 0
+      AND status IN ('new', 'confirmed')
+      AND user_telegram_id IS NOT NULL AND user_telegram_id != ''
+      AND (booking_date || ' ' || booking_time)::timestamp
+          BETWEEN (NOW() AT TIME ZONE 'Europe/Minsk') + INTERVAL '55 minutes'
+              AND (NOW() AT TIME ZONE 'Europe/Minsk') + INTERVAL '65 minutes'
+  `;
 
-  const results: Array<{ id: number; ok: boolean }> = [];
-  const markSent = db.prepare(
-    `UPDATE bookings SET reminder_sent = 1, updated_at = datetime('now') WHERE id = ?`
-  );
-
+  let sent = 0;
   for (const b of rows) {
-    const service = b.service_name ?? "уборка";
-    const address = b.address ? `\n📍 ${b.address}` : "";
     const text =
-      `🔔 <b>Напоминание</b>\n\n` +
-      `Здравствуйте, ${b.name}!\n` +
-      `Через час у вас запланирована услуга:\n\n` +
-      `🧹 <b>${service}</b>\n` +
-      `📅 ${b.booking_date} в ${b.booking_time}${address}\n\n` +
-      `Клинер скоро будет у вас 🚗\n` +
-      `Спасибо, что выбрали PrimeClean ✨`;
+      `🔔 <b>Напоминание</b>\n\nЗдравствуйте, ${b.name}!\n` +
+      `Через час у вас запланирована:\n\n` +
+      `🧹 <b>${b.service_name ?? "уборка"}</b>\n` +
+      `📅 ${b.booking_date} в ${b.booking_time}` +
+      (b.address ? `\n📍 ${b.address}` : "") +
+      `\n\nКлинер скоро будет у вас 🚗\nСпасибо, что выбрали PrimeClean ✨`;
 
-    const res = await sendTg(b.user_telegram_id, text);
-    if (res.ok) markSent.run(b.id);
-    results.push({ id: b.id, ok: !!res.ok });
+    const ok = await sendTg(b.user_telegram_id, text);
+    if (ok) {
+      await sql`
+        UPDATE bookings SET reminder_sent = 1,
+        updated_at = to_char(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS')
+        WHERE id = ${b.id}
+      `;
+      sent++;
+    }
   }
 
-  return { checked: rows.length, sent: results.filter((r) => r.ok).length, results };
+  return { checked: rows.length, sent };
 }
 
 export async function GET(req: NextRequest) {
-  if (!checkSecret(req)) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
+  if (!checkSecret(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   try {
     const out = await runReminders();
     return NextResponse.json({ ok: true, ...out });
@@ -104,6 +78,4 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(req: NextRequest) {
-  return GET(req);
-}
+export async function POST(req: NextRequest) { return GET(req); }

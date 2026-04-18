@@ -1,5 +1,4 @@
-import path from "path";
-import fs from "fs";
+import postgres from "postgres";
 
 export interface Booking {
   id: number;
@@ -15,12 +14,13 @@ export interface Booking {
   address: string | null;
   rooms: number | null;
   area: number | null;
-  extras: string | null; // JSON object: { "windows": 2, "balcony": 1 }
+  extras: string | null;
   price_estimate: number | null;
   comment: string | null;
-  contact_preference: string | null; // "callback" | "chat" | null
+  contact_preference: string | null;
   status: string;
   source: string;
+  reminder_sent: number;
   created_at: string;
   updated_at: string;
 }
@@ -45,38 +45,36 @@ export interface Review {
   service_name: string | null;
   text: string;
   photo_url: string | null;
+  extra_photos: string | null;
   is_approved: number;
   created_at: string;
 }
 
-// Lazy singleton
-let _db: import("better-sqlite3").Database | null = null;
+let _sql: ReturnType<typeof postgres> | null = null;
+let _initialized = false;
 
-export function getDb(): import("better-sqlite3").Database {
-  if (_db) return _db;
-
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const Database = require("better-sqlite3");
-  const dataDir = path.join(process.cwd(), "data");
-
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+export async function getDb() {
+  if (!_sql) {
+    const url = process.env.DATABASE_URL;
+    if (!url) throw new Error("DATABASE_URL is not set");
+    _sql = postgres(url, {
+      ssl: { rejectUnauthorized: false },
+      max: 5,
+      idle_timeout: 20,
+      connect_timeout: 10,
+    });
   }
-
-  const dbPath = process.env.DB_PATH ?? path.join(dataDir, "primeclean.db");
-  _db = new Database(dbPath) as import("better-sqlite3").Database;
-  _db.pragma("journal_mode = WAL");
-  _db.pragma("foreign_keys = ON");
-
-  initSchema(_db);
-  runMigrations(_db);
-  return _db;
+  if (!_initialized) {
+    await initSchema(_sql);
+    _initialized = true;
+  }
+  return _sql;
 }
 
-function initSchema(db: import("better-sqlite3").Database) {
-  db.exec(`
+async function initSchema(sql: ReturnType<typeof postgres>) {
+  await sql.unsafe(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       telegram_id TEXT UNIQUE NOT NULL,
       first_name TEXT,
       last_name TEXT,
@@ -84,11 +82,11 @@ function initSchema(db: import("better-sqlite3").Database) {
       tg_username TEXT,
       tg_user_id TEXT,
       phone TEXT,
-      created_at TEXT DEFAULT (datetime('now'))
+      created_at TEXT DEFAULT (to_char(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS'))
     );
 
     CREATE TABLE IF NOT EXISTS bookings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       user_telegram_id TEXT,
       tg_username TEXT,
       tg_user_id TEXT,
@@ -107,45 +105,42 @@ function initSchema(db: import("better-sqlite3").Database) {
       contact_preference TEXT DEFAULT 'callback',
       status TEXT DEFAULT 'new',
       source TEXT DEFAULT 'website',
-      created_at TEXT DEFAULT (datetime('now')),
-      updated_at TEXT DEFAULT (datetime('now'))
+      reminder_sent INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT (to_char(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS')),
+      updated_at TEXT DEFAULT (to_char(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS'))
     );
 
     CREATE TABLE IF NOT EXISTS reviews (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       user_telegram_id TEXT,
       author_name TEXT NOT NULL,
       rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
       service_name TEXT,
       text TEXT NOT NULL,
       photo_url TEXT,
+      extra_photos TEXT,
       is_approved INTEGER DEFAULT 0,
-      created_at TEXT DEFAULT (datetime('now'))
+      created_at TEXT DEFAULT (to_char(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS'))
     );
-  `);
-}
 
-// Non-destructive migrations for existing databases
-function runMigrations(db: import("better-sqlite3").Database) {
+    CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(booking_date);
+    CREATE INDEX IF NOT EXISTS idx_bookings_user ON bookings(user_telegram_id);
+    CREATE INDEX IF NOT EXISTS idx_bookings_reminder ON bookings(reminder_sent, status);
+    CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(is_approved, created_at);
+  `);
+
+  // Non-destructive migrations
   const migrations = [
-    `ALTER TABLE reviews ADD COLUMN photo_url TEXT`,
-    `ALTER TABLE bookings ADD COLUMN contact_preference TEXT DEFAULT 'callback'`,
-    `ALTER TABLE bookings ADD COLUMN tg_username TEXT`,
-    `ALTER TABLE bookings ADD COLUMN tg_user_id TEXT`,
-    `ALTER TABLE users ADD COLUMN tg_username TEXT`,
-    `ALTER TABLE users ADD COLUMN tg_user_id TEXT`,
-    `ALTER TABLE bookings ADD COLUMN reminder_sent INTEGER DEFAULT 0`,
-    `CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(booking_date)`,
-    `CREATE INDEX IF NOT EXISTS idx_bookings_user ON bookings(user_telegram_id)`,
-    `CREATE INDEX IF NOT EXISTS idx_bookings_reminder ON bookings(reminder_sent, status)`,
-    `CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(is_approved, created_at)`,
+    `ALTER TABLE reviews ADD COLUMN IF NOT EXISTS extra_photos TEXT`,
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS reminder_sent INTEGER DEFAULT 0`,
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS tg_username TEXT`,
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS tg_user_id TEXT`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS tg_username TEXT`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS tg_user_id TEXT`,
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS contact_preference TEXT DEFAULT 'callback'`,
   ];
 
-  for (const sql of migrations) {
-    try {
-      db.exec(sql);
-    } catch {
-      // Column already exists — safe to ignore
-    }
+  for (const m of migrations) {
+    try { await sql.unsafe(m); } catch { /* already exists */ }
   }
 }
