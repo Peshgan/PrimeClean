@@ -16,6 +16,12 @@ const ICON_MAP: Record<string, string> = {
   ShieldAlert: "⚗️",
 };
 
+const SERVICE_IMAGE_MAP: Record<string, string> = {
+  Waves: "/images/himshistka.png",
+  Hammer: "/images/remont.png",
+  ShieldAlert: "/images/spec_clean.png",
+};
+
 export default function ServicesTab({ onGoToOrder }: ServicesTabProps) {
   return (
     <div>
@@ -74,9 +80,14 @@ export default function ServicesTab({ onGoToOrder }: ServicesTabProps) {
                     justifyContent: "center",
                     fontSize: 24,
                     flexShrink: 0,
+                    overflow: "hidden",
                   }}
                 >
-                  {ICON_MAP[svc.icon] ?? "🧹"}
+                  {SERVICE_IMAGE_MAP[svc.icon] ? (
+                    <img src={SERVICE_IMAGE_MAP[svc.icon]} alt={svc.shortTitle} style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 14 }} />
+                  ) : (
+                    ICON_MAP[svc.icon] ?? "🧹"
+                  )}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
