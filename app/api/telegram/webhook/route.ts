@@ -134,13 +134,14 @@ export async function POST(req: NextRequest) {
           `📋 Оформить заказ на удобное время\n` +
           `⭐ Показать отзывы клиентов\n` +
           `📦 Отслеживать историю заказов\n\n` +
+          `📞 По всем вопросам: <b>+375 (44) 478-93-60</b>\n\n` +
           `Выберите действие 👇`,
         {
           reply_markup: {
             inline_keyboard: [
               [{ text: "🚀 Запустить приложение", web_app: { url: tmaUrl } }],
-              [{ text: "🌐 Перейти на сайт", url: `${APP_URL}` }],
-              [{ text: "📞 Позвонить", url: "tel:+375444789360" }, { text: "💬 Написать", url: "https://t.me/primeclean_bybot" }],
+              [{ text: "🌐 Перейти на сайт", url: APP_URL }],
+              [{ text: "💬 Написать менеджеру", url: "https://t.me/primeclean_manager" }],
             ],
           },
         }
