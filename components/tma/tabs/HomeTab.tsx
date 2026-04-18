@@ -302,7 +302,7 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
                 }}
               >
                 {SERVICE_IMAGE_MAP[svc.icon] ? (
-                  <img src={SERVICE_IMAGE_MAP[svc.icon]} alt={svc.title} style={{ width: 36, height: 36, objectFit: "contain" }} />
+                  <img src={SERVICE_IMAGE_MAP[svc.icon]} alt={svc.title} style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 12 }} />
                 ) : (
                   ICON_MAP[svc.icon] ?? "🧹"
                 )}
