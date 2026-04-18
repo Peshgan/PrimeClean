@@ -27,6 +27,7 @@ interface Booking {
   area: number | null;
   extras: string | null;
   price_estimate: number | null;
+  price_actual: number | null;
   comment: string | null;
   contact_preference: string | null;
   status: string;
@@ -487,7 +488,10 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
                     </div>
                     <div style={{ color: "#0077B6", fontSize: 12, fontWeight: 600 }}>
                       📅 {dateNice}, {b.booking_time}
-                      {b.price_estimate != null && <span style={{ marginLeft: 8, color: "#00875A" }}>~{b.price_estimate} BYN</span>}
+                      {b.price_actual != null
+                        ? <span style={{ marginLeft: 8, color: "#00875A", fontWeight: 700 }}>✓ {b.price_actual} BYN</span>
+                        : b.price_estimate != null && <span style={{ marginLeft: 8, color: "#94A3B8" }}>~{b.price_estimate} BYN</span>
+                      }
                     </div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
@@ -508,6 +512,8 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
                 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "6px 10px", fontSize: 12, color: "#1A2332", margin: "10px 0" }}>
                     <span style={{ color: "#94A3B8" }}>Телефон</span><a href={`tel:${b.phone}`} style={{ color: "#0077B6", fontWeight: 600, textDecoration: "none" }}>{b.phone}</a>
+                    {b.price_estimate != null && (<><span style={{ color: "#94A3B8" }}>Оценка</span><span style={{ color: "#475569" }}>~{b.price_estimate} BYN</span></>)}
+                    {b.price_actual != null && (<><span style={{ color: "#94A3B8" }}>Итого</span><span style={{ color: "#00875A", fontWeight: 700 }}>✓ {b.price_actual} BYN</span></>)}
                     {b.tg_username && (<><span style={{ color: "#94A3B8" }}>Telegram</span><a href={`https://t.me/${b.tg_username}`} target="_blank" rel="noreferrer" style={{ color: "#0077B6", textDecoration: "none" }}>@{b.tg_username}</a></>)}
                     {b.address && (<><span style={{ color: "#94A3B8" }}>Адрес</span><span>{b.address}</span></>)}
                     {b.area && (<><span style={{ color: "#94A3B8" }}>Площадь</span><span>{b.area} м²</span></>)}
