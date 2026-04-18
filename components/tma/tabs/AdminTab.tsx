@@ -327,6 +327,7 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
   const [status, setStatus] = useState<string>("all");
   const [expanded, setExpanded] = useState<number | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
+  const [reschedule, setReschedule] = useState<{ id: number; date: string; time: string } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -342,6 +343,26 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
   }, [tgId, period, status, onToast]);
 
   useEffect(() => { load(); }, [load]);
+
+  const submitReschedule = async () => {
+    if (!reschedule) return;
+    setBusy(reschedule.id);
+    try {
+      const res = await fetch(`/api/admin/tma?tgId=${tgId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entity: "booking", id: reschedule.id, action: "reschedule", booking_date: reschedule.date, booking_time: reschedule.time }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        onToast(data.message);
+        setBookings((p) => p.map((b) => b.id === reschedule.id ? { ...b, booking_date: reschedule.date, booking_time: reschedule.time } : b));
+        setReschedule(null);
+      }
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const act = async (id: number, patch: { action?: string; status?: string }) => {
     setBusy(id);
@@ -487,6 +508,38 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
                     <span style={{ color: "#94A3B8" }}>Создана</span><span>{formatRuDate(b.created_at)}</span>
                   </div>
 
+                  {/* Reschedule inline form */}
+                  {reschedule?.id === b.id ? (
+                    <div style={{ marginTop: 10, background: "#F0FDFF", borderRadius: 10, padding: "12px", border: "1px solid #E2EDF4" }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#0077B6", marginBottom: 8 }}>🗓 Перенос заявки</div>
+                      <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                        <input
+                          type="date"
+                          value={reschedule.date}
+                          onChange={(e) => setReschedule((r) => r ? { ...r, date: e.target.value } : r)}
+                          style={{ flex: 1, border: "1.5px solid #E2EDF4", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "#1A2332", background: "white" }}
+                        />
+                        <input
+                          type="time"
+                          value={reschedule.time}
+                          onChange={(e) => setReschedule((r) => r ? { ...r, time: e.target.value } : r)}
+                          style={{ width: 110, border: "1.5px solid #E2EDF4", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "#1A2332", background: "white" }}
+                        />
+                      </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          onClick={() => setReschedule(null)}
+                          style={{ flex: 1, background: "#F1F5F9", border: "none", borderRadius: 8, padding: "8px", fontSize: 12, fontWeight: 600, color: "#475569", cursor: "pointer" }}
+                        >Отмена</button>
+                        <button
+                          onClick={submitReschedule}
+                          disabled={!reschedule.date || !reschedule.time || busy === b.id}
+                          style={{ flex: 2, background: "#0077B6", border: "none", borderRadius: 8, padding: "8px", fontSize: 12, fontWeight: 700, color: "white", cursor: "pointer", opacity: busy === b.id ? 0.5 : 1 }}
+                        >✓ Сохранить</button>
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                     {["new", "confirmed", "in_progress", "done", "cancelled"]
                       .filter((s) => s !== b.status)
@@ -509,6 +562,18 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
                           </button>
                         );
                       })}
+                    <button
+                      disabled={busy === b.id}
+                      onClick={() => setReschedule({ id: b.id, date: b.booking_date, time: b.booking_time })}
+                      style={{
+                        background: "#EFF9FF", color: "#0077B6",
+                        border: "1px solid #BAE6FD",
+                        borderRadius: 8, padding: "6px 10px",
+                        fontSize: 11, fontWeight: 600, cursor: "pointer",
+                      }}
+                    >
+                      📅 Перенести
+                    </button>
                     <button
                       disabled={busy === b.id}
                       onClick={() => {

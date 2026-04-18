@@ -65,8 +65,8 @@ export default function ContactsPage() {
                     <MapPin size={18} className="text-[#00B4D8]" />
                   </div>
                   <div>
-                    <div className="font-semibold text-[#1A2332]">г. Минск, ул. Немига, 5</div>
-                    <div className="text-sm text-[#94A3B8]">Офис для встреч (по записи)</div>
+                    <div className="font-semibold text-[#1A2332]">г. Минск</div>
+                    <div className="text-sm text-[#94A3B8]">Выезд в пределах МКАД</div>
                   </div>
                 </div>
 
@@ -87,7 +87,7 @@ export default function ContactsPage() {
                 <h3 className="font-semibold text-[#1A2332] mb-3">Мессенджеры</h3>
                 <div className="flex gap-3">
                   {[
-                    { label: "Telegram", icon: Send, href: "https://t.me/primeclean_bybot/website" },
+                    { label: "Telegram", icon: Send, href: "https://t.me/primeclean_bybot" },
                     { label: "Viber", icon: Phone, href: "viber://chat?number=%2B375444789360" },
                     { label: "WhatsApp", icon: MessageCircle, href: "https://wa.me/375444789360" },
                   ].map((m) => {

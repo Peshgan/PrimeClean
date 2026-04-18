@@ -104,12 +104,12 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
   const [text, setText] = useState("");
   const [authorName, setAuthorName] = useState(user?.first_name ?? "");
   const [serviceName, setServiceName] = useState("");
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [photoBase64, setPhotoBase64] = useState<string | null>(null);
+  const [photos, setPhotos] = useState<{ preview: string; b64: string }[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formError, setFormError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const MAX_PHOTOS = 5;
 
   useEffect(() => {
     fetch("/api/reviews")
@@ -124,21 +124,29 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
     : "—";
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > MAX_PHOTO_BYTES) {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    const remaining = MAX_PHOTOS - photos.length;
+    const toAdd = files.slice(0, remaining);
+    const oversized = toAdd.filter((f) => f.size > MAX_PHOTO_BYTES);
+    if (oversized.length) {
       setFormError(`Фото не должно превышать ${MAX_PHOTO_MB} МБ`);
       return;
     }
     setFormError("");
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const b64 = ev.target?.result as string;
-      setPhotoPreview(b64);
-      setPhotoBase64(b64);
-    };
-    reader.readAsDataURL(file);
+    toAdd.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const b64 = ev.target?.result as string;
+        setPhotos((prev) => prev.length < MAX_PHOTOS ? [...prev, { preview: b64, b64 }] : prev);
+      };
+      reader.readAsDataURL(file);
+    });
+    // Reset input so same file can be re-selected
+    e.target.value = "";
   };
+
+  const removePhoto = (idx: number) => setPhotos((p) => p.filter((_, i) => i !== idx));
 
   const handleSubmit = async () => {
     if (!rating) { setFormError("Выберите оценку"); return; }
@@ -156,7 +164,8 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
           rating,
           serviceName: serviceName || undefined,
           text: text.trim(),
-          photoUrl: photoBase64 ?? undefined,
+          photoUrl: photos[0]?.b64 ?? undefined,
+          extraPhotos: photos.slice(1).map((p) => p.b64),
           userTelegramId: user?.id ? String(user.id) : undefined,
         }),
       });
@@ -171,8 +180,8 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
   };
 
   const resetForm = () => {
-    setRating(0); setText(""); setServiceName(""); setPhotoPreview(null);
-    setPhotoBase64(null); setFormError(""); setSubmitted(false); setShowForm(false);
+    setRating(0); setText(""); setServiceName(""); setPhotos([]);
+    setFormError(""); setSubmitted(false); setShowForm(false);
   };
 
   const inputStyle: React.CSSProperties = {
@@ -294,51 +303,58 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
               <p style={{ color: "#94A3B8", fontSize: 11, marginTop: 3 }}>{text.length}/1000</p>
             </div>
 
-            {/* Photo upload */}
+            {/* Photo upload — multiple */}
             <div style={{ marginBottom: 16 }}>
-              <label style={labelStyle}>Фото (необязательно)</label>
+              <label style={labelStyle}>
+                Фото (необязательно, до {MAX_PHOTOS} шт · до {MAX_PHOTO_MB} МБ каждое)
+              </label>
               <input
                 ref={fileRef}
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handlePhoto}
                 style={{ display: "none" }}
               />
-              {!photoPreview ? (
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  style={{
-                    width: "100%", border: "2px dashed #E2EDF4", borderRadius: 12,
-                    padding: "18px", background: "#F8FBFF", cursor: "pointer",
-                    color: "#94A3B8", fontSize: 14, fontWeight: 500,
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  }}
-                >
-                  📷 Добавить фото (до {MAX_PHOTO_MB} МБ)
-                </button>
-              ) : (
-                <div style={{ position: "relative", display: "inline-block" }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photoPreview}
-                    alt="preview"
-                    style={{ maxWidth: 160, maxHeight: 120, borderRadius: 10, border: "1.5px solid #E2EDF4", display: "block" }}
-                  />
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {photos.map((p, idx) => (
+                  <div key={idx} style={{ position: "relative" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={p.preview}
+                      alt={`фото ${idx + 1}`}
+                      style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 10, border: "1.5px solid #E2EDF4", display: "block" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(idx)}
+                      style={{
+                        position: "absolute", top: -6, right: -6,
+                        width: 20, height: 20, borderRadius: "50%",
+                        background: "#DC2626", color: "white", border: "none",
+                        fontSize: 11, cursor: "pointer", fontWeight: 700,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        lineHeight: 1,
+                      }}
+                    >✕</button>
+                  </div>
+                ))}
+                {photos.length < MAX_PHOTOS && (
                   <button
-                    onClick={() => { setPhotoPreview(null); setPhotoBase64(null); }}
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
                     style={{
-                      position: "absolute", top: -6, right: -6,
-                      width: 22, height: 22, borderRadius: "50%",
-                      background: "#DC2626", color: "white", border: "none",
-                      fontSize: 12, cursor: "pointer", fontWeight: 700,
-                      display: "flex", alignItems: "center", justifyContent: "center",
+                      width: 80, height: 80, border: "2px dashed #E2EDF4", borderRadius: 10,
+                      background: "#F8FBFF", cursor: "pointer",
+                      color: "#94A3B8", fontSize: 22,
+                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2,
                     }}
                   >
-                    ✕
+                    <span>📷</span>
+                    <span style={{ fontSize: 10, fontWeight: 600 }}>+фото</span>
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Error */}
@@ -437,12 +453,17 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
             <p style={{ color: "#475569", fontSize: 14, lineHeight: 1.6, margin: 0 }}>{review.text}</p>
 
             {review.photo_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={review.photo_url}
-                alt="Фото к отзыву"
-                style={{ marginTop: 10, maxWidth: "100%", maxHeight: 200, borderRadius: 10, border: "1px solid #E2EDF4", display: "block" }}
-              />
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                {[review.photo_url, ...((review as ReviewItem & { extra_photos?: string[] }).extra_photos ?? [])].filter(Boolean).map((url, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={url}
+                    alt={`Фото ${i + 1}`}
+                    style={{ width: 90, height: 90, objectFit: "cover", borderRadius: 10, border: "1px solid #E2EDF4", display: "block" }}
+                  />
+                ))}
+              </div>
             )}
           </div>
         ))}

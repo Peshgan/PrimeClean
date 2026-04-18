@@ -157,6 +157,15 @@ export async function PATCH(req: NextRequest) {
         db.prepare(`DELETE FROM bookings WHERE id = ?`).run(id);
         return NextResponse.json({ success: true, message: "Заявка удалена" });
       }
+      if (action === "reschedule") {
+        const { booking_date, booking_time } = body as { booking_date?: string; booking_time?: string };
+        if (!booking_date || !booking_time) return NextResponse.json({ error: "Нет даты/времени" }, { status: 400 });
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(booking_date) || !/^\d{2}:\d{2}$/.test(booking_time))
+          return NextResponse.json({ error: "Неверный формат" }, { status: 400 });
+        db.prepare(`UPDATE bookings SET booking_date = ?, booking_time = ?, reminder_sent = 0, updated_at = datetime('now') WHERE id = ?`)
+          .run(booking_date, booking_time, id);
+        return NextResponse.json({ success: true, message: `Перенесено на ${booking_date} ${booking_time}` });
+      }
       if (status && allowed.includes(status)) {
         db.prepare(`UPDATE bookings SET status = ?, updated_at = datetime('now') WHERE id = ?`).run(status, id);
         return NextResponse.json({ success: true, message: `Статус: ${status}` });

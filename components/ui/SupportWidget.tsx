@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 
-const TELEGRAM_URL = "https://t.me/primeclean_bybot/website";
+const TELEGRAM_URL = "https://t.me/primeclean_bybot";
 const VIBER_URL = "viber://chat?number=%2B375444789360";
 const WHATSAPP_URL = "https://wa.me/375444789360";
 

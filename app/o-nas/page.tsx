@@ -116,7 +116,7 @@ export default function AboutPage() {
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">Готовы работать с нами?</h2>
           <p className="text-white/80 mb-6">Оставьте заявку — перезвоним в течение 15 минут</p>
           <Link
-            href="#booking"
+            href="/#booking"
             className="inline-block bg-white text-[#0077B6] font-bold px-8 py-4 rounded-2xl hover:bg-[#F0FDFF] transition-colors cursor-pointer"
           >
             Заказать уборку

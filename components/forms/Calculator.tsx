@@ -18,9 +18,9 @@ const serviceTypes: { value: ServiceType; label: string; basePrice: number; unit
 
 const cleaningExtras: { value: string; label: string; price: number; hasQty?: boolean }[] = [
   { value: "windows", label: "Мойка окон", price: 18, hasQty: true },
+  { value: "balcony", label: "Балкон / лоджия", price: 30, hasQty: true },
   { value: "fridge", label: "Холодильник изнутри", price: 23 },
   { value: "oven", label: "Духовка", price: 18 },
-  { value: "balcony", label: "Балкон / лоджия", price: 30, hasQty: true },
   { value: "ironing", label: "Глажка белья (1 час)", price: 27 },
 ];
 
