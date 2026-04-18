@@ -7,13 +7,13 @@ interface ServicesTabProps {
 }
 
 const ICON_MAP: Record<string, string> = {
-  Home: "🏠",
+  Home: "🛋️",
   Building2: "🏢",
-  Sparkles: "✨",
-  Hammer: "🔨",
-  Trees: "🌳",
-  Waves: "🌊",
-  ShieldAlert: "🛡️",
+  Sparkles: "🫧",
+  Hammer: "🔧",
+  Trees: "🏡",
+  Waves: "🧺",
+  ShieldAlert: "⚗️",
 };
 
 export default function ServicesTab({ onGoToOrder }: ServicesTabProps) {

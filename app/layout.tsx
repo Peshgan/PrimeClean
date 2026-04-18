@@ -55,7 +55,14 @@ export const metadata: Metadata = {
     images: ["/og-image.jpg"],
   },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
-  icons: { icon: "/favicon.ico" },
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    apple: "/favicon.svg",
+    shortcut: "/favicon.svg",
+  },
   verification: {
     // Подстави свои коды после подтверждения прав в вебмастерах:
     // yandex: "<код Яндекс.Вебмастер>",

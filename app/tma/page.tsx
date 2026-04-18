@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import SplashScreen from "@/components/tma/SplashScreen";
 import Onboarding from "@/components/tma/Onboarding";
+import TMABubbles from "@/components/tma/TMABubbles";
 import BottomNav from "@/components/tma/BottomNav";
 import HomeTab from "@/components/tma/tabs/HomeTab";
 import ServicesTab from "@/components/tma/tabs/ServicesTab";
@@ -137,7 +138,8 @@ export default function TMAPage() {
         .tab-content { animation: slideInRight 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
       `}</style>
 
-      <div className="flex flex-col h-screen overflow-hidden" style={{ background: "#F0FDFF" }}>
+      <div className="flex flex-col h-screen overflow-hidden" style={{ background: "#F0FDFF", position: "relative" }}>
+        <TMABubbles />
         <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ paddingBottom: "72px" }}>
           <div key={`${activeTab}-${prevTab}`} className="tab-content">
             {activeTab === "home" && (

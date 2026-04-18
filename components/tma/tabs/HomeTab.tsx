@@ -51,13 +51,13 @@ function copyText(txt: string, webApp?: { hapticFeedback?: { notificationOccurre
 }
 
 const ICON_MAP: Record<string, string> = {
-  Home: "🏠",
+  Home: "🛋️",
   Building2: "🏢",
-  Sparkles: "✨",
-  Hammer: "🔨",
-  Trees: "🌳",
-  Waves: "🌊",
-  ShieldAlert: "🛡️",
+  Sparkles: "🫧",
+  Hammer: "🔧",
+  Trees: "🏡",
+  Waves: "🧺",
+  ShieldAlert: "⚗️",
 };
 
 const STATS = [
@@ -88,8 +88,8 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
       title: "Связаться с PrimeClean",
       value: "+375 (44) 478-93-60",
       actions: [
-        { icon: "📞", label: "Позвонить сейчас", primary: true, run: () => openExternal("tel:+375444789360") },
-        { icon: "💬", label: "Написать в Telegram", run: () => openExternal("https://t.me/primeclean_bybot") },
+        { icon: "📲", label: "Позвонить сейчас", primary: true, run: () => openExternal("tel:+375444789360") },
+        { icon: "✈️", label: "Написать в Telegram", run: () => openExternal("https://t.me/primeclean_bybot") },
         { icon: "📋", label: "Скопировать номер", run: () => copyText("+375 44 478 93 60") },
       ],
     });
@@ -346,8 +346,8 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
           }}
         >
           {[
-            { icon: "📞", label: "Телефон", value: "+375 (44) 478-93-60", onClick: openPhoneSheet, action: "Связаться" },
-            { icon: "✉️", label: "Email", value: "info@primeclean.by", onClick: openEmailSheet, action: "Написать" },
+            { icon: "📱", label: "Телефон", value: "+375 (44) 478-93-60", onClick: openPhoneSheet, action: "Связаться" },
+            { icon: "📧", label: "Email", value: "info@primeclean.by", onClick: openEmailSheet, action: "Написать" },
           ].map((c, i, arr) => (
             <button
               key={c.label}
