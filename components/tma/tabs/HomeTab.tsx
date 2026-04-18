@@ -63,6 +63,13 @@ const ICON_MAP: Record<string, string> = {
   ShieldAlert: "⚗️",
 };
 
+// Custom PNG images override emoji for specific services
+const SERVICE_IMAGE_MAP: Record<string, string> = {
+  Waves: "/images/himshistka.png",
+  Hammer: "/images/remont.png",
+  ShieldAlert: "/images/spec_clean.png",
+};
+
 const STATS = [
   { value: "200+", label: "Клиентов" },
   { value: "4.9", label: "Рейтинг" },
@@ -291,9 +298,14 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
                   justifyContent: "center",
                   fontSize: 22,
                   flexShrink: 0,
+                  overflow: "hidden",
                 }}
               >
-                {ICON_MAP[svc.icon] ?? "🧹"}
+                {SERVICE_IMAGE_MAP[svc.icon] ? (
+                  <img src={SERVICE_IMAGE_MAP[svc.icon]} alt={svc.title} style={{ width: 36, height: 36, objectFit: "contain" }} />
+                ) : (
+                  ICON_MAP[svc.icon] ?? "🧹"
+                )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
