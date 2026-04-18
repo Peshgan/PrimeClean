@@ -139,6 +139,7 @@ async function initSchema(sql: ReturnType<typeof postgres>) {
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS tg_username TEXT`,
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS tg_user_id TEXT`,
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS contact_preference TEXT DEFAULT 'callback'`,
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS price_actual REAL`,
   ];
 
   for (const m of migrations) {

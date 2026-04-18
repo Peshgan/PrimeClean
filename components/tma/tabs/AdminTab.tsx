@@ -328,6 +328,8 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
   const [expanded, setExpanded] = useState<number | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
   const [reschedule, setReschedule] = useState<{ id: number; date: string; time: string } | null>(null);
+  const [doneModal, setDoneModal] = useState<{ id: number; estimate: number | null } | null>(null);
+  const [donePrice, setDonePrice] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -364,7 +366,7 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
     }
   };
 
-  const act = async (id: number, patch: { action?: string; status?: string }) => {
+  const act = async (id: number, patch: { action?: string; status?: string; price_actual?: number }) => {
     setBusy(id);
     try {
       const res = await fetch(`/api/admin/tma?tgId=${tgId}`, {
@@ -384,6 +386,14 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
     } finally {
       setBusy(null);
     }
+  };
+
+  const submitDone = async () => {
+    if (!doneModal) return;
+    const price = parseFloat(donePrice);
+    await act(doneModal.id, { status: "done", price_actual: isNaN(price) ? undefined : price });
+    setDoneModal(null);
+    setDonePrice("");
   };
 
   return (
@@ -540,6 +550,33 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
                     </div>
                   ) : null}
 
+                  {/* Done price modal */}
+                  {doneModal?.id === b.id && (
+                    <div style={{ marginTop: 10, background: "#F0FFF4", borderRadius: 10, padding: 12, border: "1px solid #BBF7D0" }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#00875A", marginBottom: 8 }}>💰 Сумма выполнения</div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          placeholder={doneModal.estimate != null ? `~${doneModal.estimate} BYN` : "Сумма BYN"}
+                          value={donePrice}
+                          onChange={(e) => setDonePrice(e.target.value)}
+                          style={{ flex: 1, border: "1.5px solid #BBF7D0", borderRadius: 8, padding: "8px 10px", fontSize: 14, color: "#1A2332", background: "white" }}
+                        />
+                        <button
+                          onClick={() => { setDoneModal(null); setDonePrice(""); }}
+                          style={{ background: "#F1F5F9", border: "none", borderRadius: 8, padding: "8px 12px", fontSize: 12, fontWeight: 600, color: "#475569", cursor: "pointer" }}
+                        >✕</button>
+                        <button
+                          onClick={submitDone}
+                          disabled={busy === b.id}
+                          style={{ background: "#00875A", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, color: "white", cursor: "pointer" }}
+                        >✓ Готово</button>
+                      </div>
+                    </div>
+                  )}
+
                   <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                     {["new", "confirmed", "in_progress", "done", "cancelled"]
                       .filter((s) => s !== b.status)
@@ -549,7 +586,14 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
                           <button
                             key={s}
                             disabled={busy === b.id}
-                            onClick={() => act(b.id, { status: s })}
+                            onClick={() => {
+                              if (s === "done") {
+                                setDoneModal({ id: b.id, estimate: b.price_estimate });
+                                setDonePrice(b.price_estimate != null ? String(b.price_estimate) : "");
+                              } else {
+                                act(b.id, { status: s });
+                              }
+                            }}
                             style={{
                               background: m.bg, color: m.color,
                               border: `1px solid ${m.color}33`,

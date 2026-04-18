@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
           (SELECT COUNT(*) FROM reviews WHERE is_approved = 1) AS total_reviews,
           (SELECT COUNT(*) FROM reviews WHERE is_approved = 0) AS pending_reviews,
           (SELECT COALESCE(AVG(rating), 0) FROM reviews WHERE is_approved = 1) AS avg_rating,
-          (SELECT COALESCE(SUM(COALESCE(price_estimate,0)), 0) FROM bookings WHERE status IN ('done','confirmed','in_progress')) AS revenue_total,
+          (SELECT COALESCE(SUM(COALESCE(price_actual, price_estimate, 0)), 0) FROM bookings WHERE status = 'done') AS revenue_total,
           (SELECT COUNT(*) FROM bookings WHERE created_at::date = CURRENT_DATE) AS new_today,
           (SELECT COUNT(*) FROM bookings WHERE booking_date >= TO_CHAR(CURRENT_DATE, 'YYYY-MM-DD') AND status != 'cancelled') AS upcoming_count
       `;
@@ -138,12 +138,31 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ success: true, message: `Перенесено на ${booking_date} ${booking_time}` });
       }
       if (status && allowed.includes(status)) {
-        await sql`
-          UPDATE bookings SET status = ${status},
-          updated_at = to_char(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS')
-          WHERE id = ${id}
-        `;
-        return NextResponse.json({ success: true, message: `Статус: ${status}` });
+        const priceActual = typeof body.price_actual === "number" ? body.price_actual : null;
+        if (status === "done" && priceActual !== null) {
+          await sql`
+            UPDATE bookings SET status = ${status}, price_actual = ${priceActual},
+            updated_at = to_char(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS')
+            WHERE id = ${id}
+          `;
+        } else if (status === "cancelled") {
+          await sql`
+            UPDATE bookings SET status = ${status}, price_actual = NULL,
+            updated_at = to_char(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS')
+            WHERE id = ${id}
+          `;
+        } else {
+          await sql`
+            UPDATE bookings SET status = ${status},
+            updated_at = to_char(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS')
+            WHERE id = ${id}
+          `;
+        }
+        const statusLabels: Record<string, string> = {
+          new: "Новая", confirmed: "Подтверждена", in_progress: "В работе",
+          done: "Выполнена", cancelled: "Отменена",
+        };
+        return NextResponse.json({ success: true, message: `Статус: ${statusLabels[status] ?? status}` });
       }
       return NextResponse.json({ error: "Некорректный статус" }, { status: 400 });
     }
