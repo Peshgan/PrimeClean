@@ -28,11 +28,11 @@ const SERVICE_TYPES = [
 const EXTRAS_CLEANING: { value: string; label: string; price: number }[] = [
   { value: "windows", label: "Мойка окон", price: 15 },
   { value: "balcony", label: "Балкон", price: 30 },
+  { value: "cabinet", label: "Кухонный шкафчик", price: 3 },
+  { value: "wardrobe", label: "Шкаф", price: 10 },
   { value: "fridge", label: "Холодильник изнутри", price: 23 },
   { value: "oven", label: "Духовка", price: 25 },
   { value: "microwave", label: "Микроволновка", price: 20 },
-  { value: "cabinet", label: "Кухонный шкафчик", price: 3 },
-  { value: "wardrobe", label: "Шкаф", price: 10 },
   { value: "ironing", label: "Глажка (1 ч)", price: 27 },
 ];
 

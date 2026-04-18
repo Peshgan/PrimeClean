@@ -19,11 +19,11 @@ const serviceTypes: { value: ServiceType; label: string; basePrice: number; unit
 const cleaningExtras: { value: string; label: string; price: number; hasQty?: boolean }[] = [
   { value: "windows", label: "Мойка окон", price: 15, hasQty: true },
   { value: "balcony", label: "Балкон / лоджия", price: 30, hasQty: true },
+  { value: "cabinet", label: "Кухонный шкафчик", price: 3, hasQty: true },
+  { value: "wardrobe", label: "Шкаф", price: 10, hasQty: true },
   { value: "fridge", label: "Холодильник изнутри", price: 23 },
   { value: "oven", label: "Духовка", price: 25 },
   { value: "microwave", label: "Микроволновка", price: 20 },
-  { value: "cabinet", label: "Кухонный шкафчик", price: 3, hasQty: true },
-  { value: "wardrobe", label: "Шкаф", price: 10, hasQty: true },
   { value: "ironing", label: "Глажка белья (1 час)", price: 27 },
 ];
 
