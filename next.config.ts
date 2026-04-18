@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  serverExternalPackages: ["better-sqlite3"],
+  serverExternalPackages: [],
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
@@ -36,6 +36,7 @@ const nextConfig: NextConfig = {
       { source: "/services", destination: "/uslugi", permanent: true },
       { source: "/contacts", destination: "/kontakty", permanent: true },
       { source: "/about", destination: "/o-nas", permanent: true },
+      { source: "/favicon.ico", destination: "/favicon.svg", permanent: false },
     ];
   },
 };
