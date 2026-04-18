@@ -1,7 +1,6 @@
 "use server";
 
 import { z } from "zod";
-import { getDb } from "@/lib/db";
 
 const BookingSchema = z.object({
   name: z.string().min(2, "Введите ваше имя").max(100),
@@ -20,21 +19,6 @@ export type BookingFormState = {
   message: string;
   errors?: Record<string, string[]>;
 };
-
-async function notifyAdmin(id: number, d: z.infer<typeof BookingSchema>) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chat = process.env.TELEGRAM_ADMIN_CHAT_ID;
-  if (!token || !chat) return;
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chat,
-      parse_mode: "HTML",
-      text: `📋 <b>Новая заявка #${id}</b> (сайт)\n\n👤 ${d.name} | <code>${d.phone}</code>\n🧹 ${d.service}\n📅 ${d.bookingDate} в ${d.bookingTime}${d.area ? `\n📐 ${d.area} м²` : ""}${d.comment ? `\n💬 ${d.comment}` : ""}\n🔌 website`,
-    }),
-  }).catch(() => {});
-}
 
 export async function createBooking(
   prevState: BookingFormState,
@@ -61,22 +45,35 @@ export async function createBooking(
     };
   }
 
+  const d = parsed.data;
+  const backendUrl = process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://primeclean-production.up.railway.app";
+
   try {
-    const d = parsed.data;
-    const sql = await getDb();
-    const [row] = await sql`
-      INSERT INTO bookings (name, phone, service_slug, service_name, booking_date, booking_time, area, comment, source)
-      VALUES (
-        ${d.name}, ${d.phone}, ${d.serviceSlug}, ${d.service},
-        ${d.bookingDate}, ${d.bookingTime},
-        ${d.area ? Number(d.area) : null}, ${d.comment ?? null}, 'website'
-      )
-      RETURNING id
-    `;
-    await notifyAdmin(row.id, d);
+    const res = await fetch(`${backendUrl}/api/bookings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: d.name,
+        phone: d.phone,
+        serviceSlug: d.serviceSlug,
+        serviceName: d.service,
+        bookingDate: d.bookingDate,
+        bookingTime: d.bookingTime,
+        area: d.area ? Number(d.area) : undefined,
+        comment: d.comment,
+        source: "website",
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("[createBooking] backend error:", res.status, err);
+      return { success: false, message: "Ошибка сервера. Попробуйте позже." };
+    }
+
     return { success: true, message: "Заявка принята! Перезвоним в течение 15 минут." };
   } catch (error) {
-    console.error("Ошибка при отправке заявки:", error);
+    console.error("[createBooking] fetch error:", error);
     return { success: false, message: "Не удалось отправить заявку. Попробуйте позже." };
   }
 }
