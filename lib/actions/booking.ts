@@ -49,8 +49,11 @@ export async function createBooking(
   const backendUrl = process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://primeclean-production.up.railway.app";
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
     const res = await fetch(`${backendUrl}/api/bookings`, {
       method: "POST",
+      signal: controller.signal,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: d.name,
@@ -64,6 +67,7 @@ export async function createBooking(
         source: "website",
       }),
     });
+    clearTimeout(timeout);
 
     if (!res.ok) {
       const err = await res.text();

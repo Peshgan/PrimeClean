@@ -62,7 +62,7 @@ export async function getDb() {
       ssl: isInternal ? false : { rejectUnauthorized: false },
       max: 5,
       idle_timeout: 20,
-      connect_timeout: 15,
+      connect_timeout: 10,
     });
   }
   if (!_initialized) {
