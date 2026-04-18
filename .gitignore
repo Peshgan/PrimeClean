@@ -42,3 +42,16 @@ next-env.d.ts
 
 # SQLite database
 /data/
+
+# Claude AI internal files
+/.claude/
+
+# Internal dev docs
+/_dev/
+
+# Default Next.js placeholder SVGs
+/public/file.svg
+/public/globe.svg
+/public/next.svg
+/public/vercel.svg
+/public/window.svg
