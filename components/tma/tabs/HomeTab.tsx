@@ -33,15 +33,18 @@ function openExternal(url: string) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tg = (window as unknown as { Telegram?: { WebApp?: any } }).Telegram?.WebApp;
-    // For tg.me / https links — use openLink if available
-    if (url.startsWith("http") || url.startsWith("https")) {
-      if (tg?.openLink) { tg.openLink(url); return; }
-    }
-    if (url.startsWith("tg://") || url.startsWith("https://t.me/")) {
+    if (url.startsWith("https://t.me/")) {
       if (tg?.openTelegramLink) { tg.openTelegramLink(url); return; }
     }
+    if (url.startsWith("http") || url.startsWith("https")) {
+      if (tg?.openLink) { tg.openLink(url, { try_instant_view: false }); return; }
+    }
+    // tel: / mailto: — open via window.open so Telegram WebView passes it to OS
+    if (url.startsWith("tel:") || url.startsWith("mailto:")) {
+      window.open(url, "_self");
+      return;
+    }
   } catch {}
-  // Fallback + tel: / mailto: always go through window.location
   window.location.href = url;
 }
 
@@ -89,7 +92,7 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
       value: "+375 (44) 478-93-60",
       actions: [
         { icon: "📲", label: "Позвонить сейчас", primary: true, run: () => openExternal("tel:+375444789360") },
-        { icon: "✈️", label: "Написать в Telegram", run: () => openExternal("https://t.me/primeclean_bybot") },
+        { icon: "✈️", label: "Написать в Telegram", run: () => openExternal("https://t.me/primeclean_manager") },
         { icon: "📋", label: "Скопировать номер", run: () => copyText("+375 44 478 93 60") },
       ],
     });
