@@ -121,7 +121,7 @@ export default function Footer() {
               </li>
               <li className="flex items-start gap-3 text-[#94A3B8] text-sm">
                 <MapPin size={15} className="mt-0.5 shrink-0 text-[#00B4D8]" />
-                г. Минск (выезд в пределах МКАД)
+                Минск и Минская область
               </li>
               <li className="flex items-start gap-3 text-[#94A3B8] text-sm">
                 <Clock size={15} className="mt-0.5 shrink-0 text-[#00B4D8]" />

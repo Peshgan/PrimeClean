@@ -66,7 +66,7 @@ export default function ContactsPage() {
                   </div>
                   <div>
                     <div className="font-semibold text-[#1A2332]">г. Минск</div>
-                    <div className="text-sm text-[#94A3B8]">Выезд в пределах МКАД</div>
+                    <div className="text-sm text-[#94A3B8]">Минск и Минская область</div>
                   </div>
                 </div>
 
