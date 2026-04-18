@@ -55,14 +55,18 @@ let _initialized = false;
 
 export async function getDb() {
   if (!_sql) {
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error("DATABASE_URL is not set");
-    const isInternal = url.includes(".railway.internal");
+    const rawUrl = process.env.DATABASE_URL;
+    if (!rawUrl) throw new Error("DATABASE_URL is not set");
+    const isInternal = rawUrl.includes(".railway.internal");
+    // Strip any existing sslmode param and append disable for internal
+    const url = isInternal
+      ? rawUrl.replace(/[?&]sslmode=[^&]*/g, "") + (rawUrl.includes("?") ? "&sslmode=disable" : "?sslmode=disable")
+      : rawUrl;
     _sql = postgres(url, {
       ssl: isInternal ? false : { rejectUnauthorized: false },
       max: 5,
       idle_timeout: 20,
-      connect_timeout: 10,
+      connect_timeout: 15,
     });
   }
   if (!_initialized) {
