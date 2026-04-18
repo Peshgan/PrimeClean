@@ -134,6 +134,11 @@ function runMigrations(db: import("better-sqlite3").Database) {
     `ALTER TABLE bookings ADD COLUMN tg_user_id TEXT`,
     `ALTER TABLE users ADD COLUMN tg_username TEXT`,
     `ALTER TABLE users ADD COLUMN tg_user_id TEXT`,
+    `ALTER TABLE bookings ADD COLUMN reminder_sent INTEGER DEFAULT 0`,
+    `CREATE INDEX IF NOT EXISTS idx_bookings_date ON bookings(booking_date)`,
+    `CREATE INDEX IF NOT EXISTS idx_bookings_user ON bookings(user_telegram_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_bookings_reminder ON bookings(reminder_sent, status)`,
+    `CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(is_approved, created_at)`,
   ];
 
   for (const sql of migrations) {

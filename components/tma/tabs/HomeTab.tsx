@@ -12,12 +12,43 @@ interface HomeTabProps {
   onTabChange: (tab: TabId) => void;
 }
 
+type ContactAction = {
+  icon: string;
+  label: string;
+  run: () => void;
+  primary?: boolean;
+};
+
 type ContactSheet = null | {
   kind: "phone" | "email";
   title: string;
   value: string;
-  actions: { icon: string; label: string; href?: string; onClick?: () => void }[];
+  actions: ContactAction[];
 };
+
+// Trigger native dialer/mail — reliable across iOS/Android TG WebView.
+// `window.location.href` with tel:/mailto: is the only method that consistently
+// launches the native app inside the Telegram WebView on both platforms.
+function openExternal(url: string) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tg = (window as unknown as { Telegram?: { WebApp?: any } }).Telegram?.WebApp;
+    // For tg.me / https links — use openLink if available
+    if (url.startsWith("http") || url.startsWith("https")) {
+      if (tg?.openLink) { tg.openLink(url); return; }
+    }
+    if (url.startsWith("tg://") || url.startsWith("https://t.me/")) {
+      if (tg?.openTelegramLink) { tg.openTelegramLink(url); return; }
+    }
+  } catch {}
+  // Fallback + tel: / mailto: always go through window.location
+  window.location.href = url;
+}
+
+function copyText(txt: string, webApp?: { hapticFeedback?: { notificationOccurred?: (t: string) => void } }) {
+  try { navigator.clipboard?.writeText(txt); } catch {}
+  try { webApp?.hapticFeedback?.notificationOccurred?.("success"); } catch {}
+}
 
 const ICON_MAP: Record<string, string> = {
   Home: "🏠",
@@ -42,31 +73,37 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
   const greeting = user?.first_name ? `Привет, ${user.first_name}! 👋` : "Добро пожаловать! 👋";
   const [sheet, setSheet] = useState<ContactSheet>(null);
 
-  const copy = (txt: string) => {
-    try { navigator.clipboard?.writeText(txt); } catch {}
+  const haptic = () => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const tg = (window as unknown as { Telegram?: { WebApp?: any } }).Telegram?.WebApp;
+      tg?.hapticFeedback?.selectionChanged?.();
+    } catch {}
   };
 
   const openPhoneSheet = () => {
+    haptic();
     setSheet({
       kind: "phone",
       title: "Связаться с PrimeClean",
       value: "+375 (44) 478-93-60",
       actions: [
-        { icon: "📞", label: "Позвонить", href: "tel:+375444789360" },
-        { icon: "💬", label: "Написать в Telegram", href: "https://t.me/primeclean_bybot" },
-        { icon: "📋", label: "Скопировать номер", onClick: () => copy("+375444789360") },
+        { icon: "📞", label: "Позвонить сейчас", primary: true, run: () => openExternal("tel:+375444789360") },
+        { icon: "💬", label: "Написать в Telegram", run: () => openExternal("https://t.me/primeclean_bybot") },
+        { icon: "📋", label: "Скопировать номер", run: () => copyText("+375 44 478 93 60") },
       ],
     });
   };
 
   const openEmailSheet = () => {
+    haptic();
     setSheet({
       kind: "email",
-      title: "Написать нам",
+      title: "Написать на почту",
       value: "info@primeclean.by",
       actions: [
-        { icon: "✉️", label: "Открыть почту", href: "mailto:info@primeclean.by" },
-        { icon: "📋", label: "Скопировать email", onClick: () => copy("info@primeclean.by") },
+        { icon: "✉️", label: "Открыть почту", primary: true, run: () => openExternal("mailto:info@primeclean.by") },
+        { icon: "📋", label: "Скопировать email", run: () => copyText("info@primeclean.by") },
       ],
     });
   };
@@ -375,40 +412,36 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
               <div style={{ color: "#94A3B8", fontSize: 13 }}>{sheet.value}</div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {sheet.actions.map((a) => {
-                const isPrimary = a === sheet.actions[0];
-                const Comp = a.href ? "a" : "button";
-                return (
-                  <Comp
-                    key={a.label}
-                    href={a.href}
-                    onClick={() => {
-                      a.onClick?.();
-                      setTimeout(() => setSheet(null), a.href ? 0 : 400);
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "14px 16px",
-                      border: `1.5px solid ${isPrimary ? "#00B4D8" : "#E2EDF4"}`,
-                      background: isPrimary ? "linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)" : "white",
-                      color: isPrimary ? "white" : "#1A2332",
-                      fontWeight: 600,
-                      fontSize: 15,
-                      borderRadius: 14,
-                      textDecoration: "none",
-                      cursor: "pointer",
-                      width: "100%",
-                      textAlign: "left" as const,
-                    }}
-                  >
-                    <span style={{ fontSize: 20 }}>{a.icon}</span>
-                    <span style={{ flex: 1 }}>{a.label}</span>
-                    <span style={{ opacity: 0.6 }}>›</span>
-                  </Comp>
-                );
-              })}
+              {sheet.actions.map((a) => (
+                <button
+                  key={a.label}
+                  type="button"
+                  onClick={() => {
+                    haptic();
+                    a.run();
+                    setSheet(null);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "14px 16px",
+                    border: `1.5px solid ${a.primary ? "#00B4D8" : "#E2EDF4"}`,
+                    background: a.primary ? "linear-gradient(135deg, #00B4D8 0%, #0077B6 100%)" : "white",
+                    color: a.primary ? "white" : "#1A2332",
+                    fontWeight: 600,
+                    fontSize: 15,
+                    borderRadius: 14,
+                    cursor: "pointer",
+                    width: "100%",
+                    textAlign: "left" as const,
+                  }}
+                >
+                  <span style={{ fontSize: 20 }}>{a.icon}</span>
+                  <span style={{ flex: 1 }}>{a.label}</span>
+                  <span style={{ opacity: 0.6 }}>›</span>
+                </button>
+              ))}
               <button
                 onClick={() => setSheet(null)}
                 style={{

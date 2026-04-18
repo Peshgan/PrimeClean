@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import type { TelegramUser } from "@/types/telegram";
 import { services } from "@/lib/data/services";
 import AddressPicker from "@/components/tma/AddressPicker";
@@ -47,6 +47,146 @@ const TIME_SLOTS = [
   "08:00", "09:00", "10:00", "11:00", "12:00",
   "13:00", "14:00", "15:00", "16:00", "17:00", "18:00",
 ];
+
+function TimeSelect({
+  value,
+  onChange,
+  date,
+}: {
+  value: string;
+  onChange: (t: string) => void;
+  date: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [taken, setTaken] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!date) { setTaken(new Set()); return; }
+    setLoading(true);
+    fetch(`/api/bookings/slots?date=${date}`)
+      .then((r) => r.json())
+      .then((d) => setTaken(new Set<string>(d.taken ?? [])))
+      .catch(() => setTaken(new Set()))
+      .finally(() => setLoading(false));
+  }, [date]);
+
+  // Close on outside tap
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onDown);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onDown);
+    };
+  }, [open]);
+
+  const available = TIME_SLOTS.filter((t) => !taken.has(t));
+  const hasChosen = !!value;
+  const chosenDisabled = hasChosen && taken.has(value);
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={() => { if (date) setOpen((v) => !v); }}
+        disabled={!date}
+        style={{
+          width: "100%",
+          border: `1.5px solid ${open ? "#00B4D8" : "#E2EDF4"}`,
+          borderRadius: 12,
+          padding: "12px 14px",
+          background: !date ? "#F8FBFF" : "white",
+          color: hasChosen ? "#0077B6" : "#94A3B8",
+          fontSize: 15,
+          fontWeight: hasChosen ? 700 : 500,
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          cursor: date ? "pointer" : "not-allowed",
+          textAlign: "left" as const,
+          transition: "all 0.15s",
+          boxShadow: open ? "0 8px 20px rgba(0,119,182,0.12)" : "none",
+        }}
+      >
+        <span style={{ fontSize: 18 }}>🕒</span>
+        <span style={{ flex: 1 }}>
+          {!date
+            ? "Сначала выберите дату"
+            : loading
+              ? "Загружаем свободные слоты…"
+              : hasChosen
+                ? value
+                : "Выберите время"}
+        </span>
+        <span style={{ color: "#94A3B8", fontSize: 14, transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "rotate(0)" }}>▾</span>
+      </button>
+
+      {open && date && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            left: 0,
+            right: 0,
+            background: "white",
+            border: "1.5px solid #00B4D8",
+            borderRadius: 14,
+            padding: 8,
+            boxShadow: "0 12px 28px rgba(0,119,182,0.18)",
+            zIndex: 30,
+            maxHeight: 240,
+            overflowY: "auto",
+            animation: "fadeUp 0.18s ease",
+          }}
+        >
+          {available.length === 0 ? (
+            <div style={{ padding: 14, textAlign: "center", color: "#94A3B8", fontSize: 13 }}>
+              На эту дату все слоты заняты. Выберите другую дату.
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+              {available.map((t) => {
+                const isActive = t === value;
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => { onChange(t); setOpen(false); }}
+                    style={{
+                      background: isActive ? "linear-gradient(135deg,#00B4D8,#0077B6)" : "#F0FDFF",
+                      color: isActive ? "white" : "#0077B6",
+                      border: `1.5px solid ${isActive ? "#0077B6" : "#E2EDF4"}`,
+                      borderRadius: 10,
+                      padding: "8px 0",
+                      fontSize: 13,
+                      fontWeight: isActive ? 700 : 600,
+                      cursor: "pointer",
+                      transition: "all 0.12s",
+                    }}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {chosenDisabled && !open && (
+        <p style={{ color: "#DC2626", fontSize: 11, marginTop: 4 }}>
+          ⚠️ Время {value} уже занято, выберите другое
+        </p>
+      )}
+    </div>
+  );
+}
 
 type ExtrasMap = Record<string, number>;
 
@@ -707,30 +847,10 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             />
           </div>
 
-          {/* Time slots */}
+          {/* Time — stylish dropdown with occupied slots hidden */}
           <div style={{ marginBottom: 14 }}>
             <label style={labelStyle}>Время *</label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {TIME_SLOTS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setBookingTime(t)}
-                  style={{
-                    background: bookingTime === t ? "#EFF9FF" : "white",
-                    border: `1.5px solid ${bookingTime === t ? "#00B4D8" : "#E2EDF4"}`,
-                    borderRadius: 10,
-                    padding: "8px 14px",
-                    fontSize: 14,
-                    fontWeight: bookingTime === t ? 700 : 400,
-                    color: bookingTime === t ? "#0077B6" : "#475569",
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            <TimeSelect value={bookingTime} onChange={setBookingTime} date={bookingDate} />
           </div>
 
           {/* Address with GPS picker */}

@@ -33,6 +33,15 @@ export default function TMALayout({ children }: { children: React.ReactNode }) {
         html, body, #__next { height: 100%; }
         input, select, textarea { font-size: 16px !important; }
         * { -webkit-tap-highlight-color: transparent; }
+        button, a[role="button"], [data-tap] {
+          transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.12s ease;
+        }
+        button:active, a[role="button"]:active, [data-tap]:active {
+          transform: scale(0.97);
+          opacity: 0.92;
+        }
+        /* Smoother inertial scroll inside TG WebView */
+        ::-webkit-scrollbar { width: 0; height: 0; }
       `}</style>
       <div
         style={{
