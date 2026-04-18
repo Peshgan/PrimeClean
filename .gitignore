@@ -49,6 +49,15 @@ next-env.d.ts
 # Internal dev docs
 /_dev/
 
+# Backend Python
+backend/.env
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/**/*.pyc
+backend/.venv/
+backend/venv/
+
 # Default Next.js placeholder SVGs
 /public/file.svg
 /public/globe.svg
