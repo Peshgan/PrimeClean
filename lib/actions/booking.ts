@@ -52,7 +52,8 @@ export async function createBooking(
   }
 
   try {
-    const res = await fetch(`${process.env.BACKEND_URL}/api/bookings`, {
+    const base = process.env.NEXT_PUBLIC_APP_URL ?? process.env.BACKEND_URL ?? "http://localhost:3000";
+    const res = await fetch(`${base}/api/bookings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(parsed.data),
