@@ -158,6 +158,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           ym(108686777,"init",{clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:true});
         `}</Script>
         <noscript><div><img src="https://mc.yandex.ru/watch/108686777" style={{position:"absolute",left:"-9999px"}} alt="" /></div></noscript>
+        <Script src="https://www.googletagmanager.com/gtag/js?id=AW-18107069366" strategy="afterInteractive" />
+        <Script id="google-ads" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'AW-18107069366');
+        `}</Script>
         <Header />
         <main>{children}</main>
         <Footer />
