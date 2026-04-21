@@ -42,8 +42,8 @@ export default function PrivacyPage() {
               Оператор — физическое лицо, уплачивающее налог на профессиональный доход (далее — «самозанятый»):
             </p>
             <ul className="list-disc pl-6 space-y-1">
-              <li><strong>ФИО:</strong> [укажите ФИО самозанятого]</li>
-              <li><strong>УНП:</strong> [номер из приложения «Налог на профессиональный доход»]</li>
+              <li><strong>ФИО:</strong> Левковец А. И.</li>
+              <li><strong>УНП:</strong> ВЕ89624282</li>
               <li><strong>Контактный телефон:</strong> +375 (44) 478-93-60</li>
               <li><strong>Email:</strong> info@primeclean.by</li>
               <li><strong>Статус:</strong> физическое лицо, уплачивающее налог на профессиональный доход (самозанятый, ст. 381-2 НК РБ)</li>

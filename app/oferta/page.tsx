@@ -34,7 +34,7 @@ export default function OfertaPage() {
           <section>
             <p>
               Настоящий документ является публичной офертой (далее — «Оферта») физического лица, уплачивающего налог на
-              профессиональный доход, [ФИО самозанятого] (далее — «Исполнитель»), УНП [номер], осуществляющего
+              профессиональный доход, Левковец А. И. (далее — «Исполнитель»), УНП ВЕ89624282, осуществляющего
               деятельность под брендом <strong>PrimeClean</strong>, адресованной неопределённому кругу физических лиц
               (далее — «Заказчик»), о заключении договора возмездного оказания клининговых услуг на условиях,
               изложенных ниже.
@@ -194,9 +194,9 @@ export default function OfertaPage() {
           <section>
             <h2 className="text-xl font-bold text-[#1A2332]">11. Реквизиты Исполнителя</h2>
             <ul className="list-disc pl-6 space-y-1">
-              <li><strong>Исполнитель:</strong> [ФИО самозанятого]</li>
+              <li><strong>Исполнитель:</strong> Левковец А. И.</li>
               <li><strong>Статус:</strong> плательщик налога на профессиональный доход (ст. 381-2 НК РБ)</li>
-              <li><strong>УНП:</strong> [номер из приложения «Налог на профессиональный доход»]</li>
+              <li><strong>УНП:</strong> ВЕ89624282</li>
               <li><strong>Город осуществления деятельности:</strong> г. Минск</li>
               <li><strong>Телефон:</strong> <a href="tel:+375444789360" className="text-[#0077B6] hover:underline">+375 (44) 478-93-60</a></li>
               <li><strong>Email:</strong> <a href="mailto:info@primeclean.by" className="text-[#0077B6] hover:underline">info@primeclean.by</a></li>
