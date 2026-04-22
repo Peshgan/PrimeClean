@@ -8,10 +8,10 @@ type ServiceType = "standard" | "general" | "after-repair" | "office" | "dry-cle
 type ExtrasMap = Record<string, number>;
 
 const serviceTypes: { value: ServiceType; label: string; basePrice: number; unit: string }[] = [
-  { value: "standard", label: "Стандартная уборка", basePrice: 1.8, unit: "BYN/м²" },
-  { value: "general", label: "Генеральная уборка", basePrice: 2.8, unit: "BYN/м²" },
-  { value: "after-repair", label: "После ремонта", basePrice: 3.5, unit: "BYN/м²" },
-  { value: "office", label: "Уборка офиса", basePrice: 1.5, unit: "BYN/м²" },
+  { value: "standard", label: "Стандартная уборка", basePrice: 2, unit: "2 BYN/м²" },
+  { value: "general", label: "Генеральная уборка", basePrice: 6, unit: "6 BYN/м²" },
+  { value: "after-repair", label: "После ремонта", basePrice: 9, unit: "9 BYN/м²" },
+  { value: "office", label: "Уборка офиса", basePrice: 1.8, unit: "1.8 BYN/м²" },
   { value: "dry-cleaning", label: "Химчистка", basePrice: 7, unit: "BYN/м²" },
   { value: "specialized", label: "Спец. уборка", basePrice: 0, unit: "индивидуально" },
 ];
