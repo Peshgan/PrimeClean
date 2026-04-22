@@ -16,10 +16,10 @@ type ServiceType = "standard" | "general" | "after-repair" | "office" | "dry-cle
 type ContactPreference = "callback" | "chat" | "";
 
 const SERVICE_TYPES = [
-  { value: "standard" as ServiceType, label: "Стандартная уборка", basePrice: 1.8 },
-  { value: "general" as ServiceType, label: "Генеральная уборка", basePrice: 2.8 },
-  { value: "after-repair" as ServiceType, label: "После ремонта", basePrice: 3.5 },
-  { value: "office" as ServiceType, label: "Уборка офиса", basePrice: 1.5 },
+  { value: "standard" as ServiceType, label: "Стандартная уборка", basePrice: 2 },
+  { value: "general" as ServiceType, label: "Генеральная уборка", basePrice: 6 },
+  { value: "after-repair" as ServiceType, label: "После ремонта", basePrice: 9 },
+  { value: "office" as ServiceType, label: "Уборка офиса", basePrice: 1.8 },
   { value: "dry-cleaning" as ServiceType, label: "Химчистка", basePrice: 7 },
   { value: "specialized" as ServiceType, label: "Спец. уборка", basePrice: 0 },
 ];
@@ -30,6 +30,7 @@ const EXTRAS_CLEANING: { value: string; label: string; price: number }[] = [
   { value: "balcony", label: "Балкон", price: 30 },
   { value: "cabinet", label: "Кухонный шкафчик", price: 3 },
   { value: "wardrobe", label: "Шкаф", price: 10 },
+  { value: "hood", label: "Вытяжка", price: 15 },
   { value: "fridge", label: "Холодильник изнутри", price: 23 },
   { value: "oven", label: "Духовка", price: 25 },
   { value: "microwave", label: "Микроволновка", price: 20 },

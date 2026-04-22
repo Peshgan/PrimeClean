@@ -139,6 +139,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ru" className={`${inter.variable} ${montserrat.variable}`} suppressHydrationWarning>
       <head>
+        <link
+          rel="preload"
+          as="image"
+          href="https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_auto,w_900/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg"
+          imageSrcSet="https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_auto,w_480/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg 480w, https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_auto,w_900/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg 900w"
+          imageSizes="(max-width: 768px) 100vw, 50vw"
+        />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}

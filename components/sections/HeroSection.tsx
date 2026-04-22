@@ -50,7 +50,7 @@ export default function HeroSection() {
             <ul className="space-y-3">
               {[
                 "Работаем с 08:00 до 20:00, включая выходные",
-                "Уборка квартиры от 79 BYN",
+                "Уборка квартиры от 80 BYN",
                 "Без предоплаты — платите после приёмки",
               ].map((item) => (
                 <li key={item} className="flex items-center gap-3 text-[#475569]">
@@ -90,10 +90,14 @@ export default function HeroSection() {
           <div className="relative">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/5] lg:aspect-[3/4]">
               <img
-                src="https://res.cloudinary.com/dkbltmyul/image/upload/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg"
+                src="https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_auto,w_900/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg"
+                srcSet="https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_auto,w_480/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg 480w, https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_auto,w_900/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg 900w"
+                sizes="(max-width: 768px) 100vw, 50vw"
                 alt="Профессиональная уборка квартиры в Минске — PrimeClean"
                 className="w-full h-full object-cover"
                 loading="eager"
+                fetchPriority="high"
+                decoding="sync"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0077B6]/20 to-transparent" />
             </div>

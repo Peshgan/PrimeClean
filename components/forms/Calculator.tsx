@@ -21,6 +21,7 @@ const cleaningExtras: { value: string; label: string; price: number; hasQty?: bo
   { value: "balcony", label: "Балкон / лоджия", price: 30, hasQty: true },
   { value: "cabinet", label: "Кухонный шкафчик", price: 3, hasQty: true },
   { value: "wardrobe", label: "Шкаф", price: 10, hasQty: true },
+  { value: "hood", label: "Вытяжка", price: 15 },
   { value: "fridge", label: "Холодильник изнутри", price: 23 },
   { value: "oven", label: "Духовка", price: 25 },
   { value: "microwave", label: "Микроволновка", price: 20 },
