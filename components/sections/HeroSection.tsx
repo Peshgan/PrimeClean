@@ -90,8 +90,8 @@ export default function HeroSection() {
           <div className="relative">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/5] lg:aspect-[3/4]">
               <img
-                src="https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_auto,w_900/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg"
-                srcSet="https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_auto,w_480/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg 480w, https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_auto,w_900/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg 900w"
+                src="https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_90,w_900/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg"
+                srcSet="https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_90,w_480/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg 480w, https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_90,w_900/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg 900w"
                 sizes="(max-width: 768px) 100vw, 50vw"
                 alt="Профессиональная уборка квартиры в Минске — PrimeClean"
                 className="w-full h-full object-cover"
