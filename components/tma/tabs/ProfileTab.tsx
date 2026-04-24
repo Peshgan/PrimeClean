@@ -44,6 +44,8 @@ export default function ProfileTab({ user, webApp }: ProfileTabProps) {
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<"all" | "active" | "history">("all");
+  const [referralCode, setReferralCode] = useState<string>("");
+  const [codeCopied, setCodeCopied] = useState(false);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -54,6 +56,30 @@ export default function ProfileTab({ user, webApp }: ProfileTabProps) {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    fetch(`/api/referral?telegramId=${user.id}`)
+      .then((r) => r.json())
+      .then((d) => { if (d.code) setReferralCode(d.code); })
+      .catch(() => {});
+  }, [user?.id]);
+
+  const shareReferral = () => {
+    const msg = `Закажи уборку в PrimeClean и получи скидку 15% по моему коду ${referralCode}! 🧹✨\n👉 https://t.me/primeclean_bybot`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const wa = webApp as any;
+    if (wa?.shareURL) {
+      try { wa.shareURL(`https://t.me/primeclean_bybot`, msg); return; } catch {}
+    }
+    if (navigator.share) {
+      navigator.share({ text: msg }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(referralCode).catch(() => {});
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    }
+  };
 
   const today = new Date().toISOString().split("T")[0];
   const activeStatuses = new Set(["new", "confirmed", "in_progress"]);
@@ -208,6 +234,62 @@ export default function ProfileTab({ user, webApp }: ProfileTabProps) {
             <div style={{ background: "white", border: "1px solid #E2EDF4", borderRadius: 12, padding: "10px", textAlign: "center" }}>
               <div style={{ color: "#B45309", fontSize: 18, fontWeight: 800, fontFamily: "var(--font-montserrat,'Montserrat',sans-serif)" }}>{counts.spent}</div>
               <div style={{ color: "#94A3B8", fontSize: 10, marginTop: 2 }}>BYN</div>
+            </div>
+          </div>
+        )}
+
+        {/* Referral code card */}
+        {user?.id && referralCode && (
+          <div
+            style={{
+              background: "linear-gradient(135deg,#EFF9FF,#E0F2FE)",
+              border: "1.5px solid #BAE6FD",
+              borderRadius: 16,
+              padding: "14px 16px",
+              marginBottom: 14,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <span style={{ fontSize: 20 }}>🎁</span>
+              <div>
+                <div style={{ color: "#0077B6", fontWeight: 700, fontSize: 14 }}>Пригласи друга</div>
+                <div style={{ color: "#475569", fontSize: 11 }}>Друг получит скидку 15% на первый заказ</div>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <div
+                style={{
+                  flex: 1,
+                  background: "white",
+                  border: "1.5px solid #BAE6FD",
+                  borderRadius: 10,
+                  padding: "10px 14px",
+                  fontFamily: "monospace",
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "#0077B6",
+                  letterSpacing: 2,
+                  textAlign: "center",
+                }}
+              >
+                {referralCode}
+              </div>
+              <button
+                onClick={shareReferral}
+                style={{
+                  background: "linear-gradient(135deg,#00B4D8,#0077B6)",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "10px 16px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {codeCopied ? "✅ Скопировано" : "📤 Поделиться"}
+              </button>
             </div>
           </div>
         )}

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { createBooking, type BookingFormState } from "@/lib/actions/booking";
+import { fireBookingConversion } from "@/lib/gtag";
 
 const services = [
   { value: "uborka-kvartir", label: "Уборка квартиры" },
@@ -31,6 +32,7 @@ export default function BookingForm({ preselectedService, compact = false }: Boo
 
   useEffect(() => {
     if (state.success) {
+      fireBookingConversion();
       formRef.current?.reset();
       setTimeout(() => router.push("/spasibo"), 1500);
     }

@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import type { TelegramUser } from "@/types/telegram";
 import { services } from "@/lib/data/services";
 import AddressPicker from "@/components/tma/AddressPicker";
+import { fireBookingConversion } from "@/lib/gtag";
 
 interface OrderTabProps {
   user: TelegramUser | null;
@@ -305,6 +306,8 @@ function QtyStepper({
   );
 }
 
+type SubType = "single" | "x2" | "x4";
+
 export default function OrderTab({ user, preselectedService, onServiceChange }: OrderTabProps) {
   const [step, setStep] = useState<Step>("calc");
 
@@ -314,6 +317,7 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
   );
   const [area, setArea] = useState(50);
   const [extrasMap, setExtrasMap] = useState<ExtrasMap>({});
+  const [subType, setSubType] = useState<SubType>("single");
 
   // Form state
   const [name, setName] = useState(user?.first_name ?? "");
@@ -328,13 +332,29 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
   const [error, setError] = useState("");
   const [showPhoneHint, setShowPhoneHint] = useState(false);
 
-  // Promo code
+  // Promo / referral code
   const [promoInput, setPromoInput] = useState("");
   const [promoState, setPromoState] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
   const [promoPercent, setPromoPercent] = useState(0);
+  const [promoLabel, setPromoLabel] = useState("");
+  const [isReferralCode, setIsReferralCode] = useState(false);
+
+  // First order auto-discount
+  const [firstOrderDiscount, setFirstOrderDiscount] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    fetch(`/api/discounts?telegramId=${user.id}`)
+      .then((r) => r.json())
+      .then((d) => { if (d.firstOrder) setFirstOrderDiscount(true); })
+      .catch(() => {});
+  }, [user?.id]);
 
   const basePrice = calcPrice(serviceType, area, extrasMap);
-  const price = promoPercent > 0 ? Math.round(basePrice * (1 - promoPercent / 100)) : basePrice;
+  const subDiscount = subType === "x2" ? 10 : subType === "x4" ? 15 : 0;
+  const autoDiscount = firstOrderDiscount && promoPercent === 0 ? 10 : 0;
+  const totalDiscount = Math.min(promoPercent + autoDiscount + subDiscount, 40);
+  const price = totalDiscount > 0 ? Math.round(basePrice * (1 - totalDiscount / 100)) : basePrice;
 
   const requestContact = useCallback(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -376,17 +396,27 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
     if (!code) return;
     setPromoState("checking");
     try {
-      const res = await fetch(`/api/promo?code=${encodeURIComponent(code)}`);
+      const isReferral = /^PC[A-Z0-9]{4,}$/.test(code);
+      const url = isReferral
+        ? `/api/referral?code=${encodeURIComponent(code)}`
+        : `/api/promo?code=${encodeURIComponent(code)}`;
+      const res = await fetch(url);
       const d = await res.json();
       if (d.valid) {
         setPromoPercent(d.percent);
+        setPromoLabel(isReferral ? `Реферал ${d.percent}%` : `Промокод ${d.percent}%`);
+        setIsReferralCode(isReferral);
         setPromoState("valid");
       } else {
         setPromoPercent(0);
+        setPromoLabel("");
+        setIsReferralCode(false);
         setPromoState("invalid");
       }
     } catch {
       setPromoPercent(0);
+      setPromoLabel("");
+      setIsReferralCode(false);
       setPromoState("invalid");
     }
   }, [promoInput]);
@@ -427,6 +457,15 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
       const tgUsername = tgUser?.username ?? undefined;
       const tgUserId = tgUser?.id ? String(tgUser.id) : undefined;
 
+      // Record referral usage on actual booking submission
+      if (isReferralCode && promoPercent > 0 && tgUserId) {
+        await fetch("/api/referral", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: promoInput.trim().toUpperCase(), newUserTelegramId: tgUserId }),
+        }).catch(() => {});
+      }
+
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -442,7 +481,9 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
           extras: extrasMap,
           priceEstimate: price > 0 ? price : undefined,
           comment: [
-            promoPercent > 0 ? `[Промокод: ${promoInput} −${promoPercent}%]` : "",
+            promoPercent > 0 ? `[${promoLabel}: ${promoInput} −${promoPercent}%]` : "",
+            autoDiscount > 0 ? `[Скидка первый заказ −${autoDiscount}%]` : "",
+            subType !== "single" ? `[Абонемент: ${subType === "x2" ? "×2/мес −10%" : "×4/мес −15%"}]` : "",
             comment.trim(),
           ].filter(Boolean).join(" ") || undefined,
           userTelegramId: tgUserId,
@@ -455,6 +496,7 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Ошибка");
+      fireBookingConversion(data.bookingId);
       setStep("success");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка при отправке");
@@ -661,6 +703,77 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             </div>
           )}
 
+          {/* First order discount banner */}
+          {firstOrderDiscount && promoPercent === 0 && serviceType !== "specialized" && (
+            <div style={{
+              background: "linear-gradient(135deg,#ECFDF5,#D1FAE5)",
+              border: "1.5px solid #6EE7B7",
+              borderRadius: 12,
+              padding: "10px 14px",
+              marginBottom: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+            }}>
+              <span style={{ fontSize: 20 }}>🎁</span>
+              <div>
+                <div style={{ color: "#065F46", fontWeight: 700, fontSize: 13 }}>Скидка за первый заказ −10%</div>
+                <div style={{ color: "#047857", fontSize: 11 }}>Применяется автоматически</div>
+              </div>
+            </div>
+          )}
+
+          {/* Subscription type */}
+          {serviceType !== "specialized" && (
+            <div style={{ marginBottom: 20 }}>
+              <label style={labelStyle}>Тип заказа</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {([
+                  { value: "single" as SubType, label: "Разовая уборка", badge: null },
+                  { value: "x2" as SubType, label: "Абонемент ×2 в месяц", badge: "−10%" },
+                  { value: "x4" as SubType, label: "Абонемент ×4 в месяц", badge: "−15%" },
+                ]).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSubType(opt.value)}
+                    style={{
+                      background: subType === opt.value ? "#EFF9FF" : "white",
+                      border: `2px solid ${subType === opt.value ? "#00B4D8" : "#E2EDF4"}`,
+                      borderRadius: 10,
+                      padding: "10px 14px",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{
+                        width: 16, height: 16, borderRadius: "50%",
+                        border: `2px solid ${subType === opt.value ? "#00B4D8" : "#CBD5E1"}`,
+                        background: subType === opt.value ? "#00B4D8" : "white",
+                        flexShrink: 0,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        {subType === opt.value && <div style={{ width: 5, height: 5, borderRadius: "50%", background: "white" }} />}
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: subType === opt.value ? 600 : 400, color: subType === opt.value ? "#0077B6" : "#475569" }}>
+                        {opt.label}
+                      </span>
+                    </div>
+                    {opt.badge && (
+                      <span style={{ background: "#ECFDF5", color: "#065F46", borderRadius: 6, padding: "2px 8px", fontSize: 11, fontWeight: 700 }}>
+                        {opt.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Extras — unified quantity list, sequentially ordered */}
           {serviceType !== "specialized" && (
             <div style={{ marginBottom: 20 }}>
@@ -681,11 +794,11 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             </div>
           )}
 
-          {/* Promo code */}
+          {/* Promo / referral code */}
           {serviceType !== "specialized" && (
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", color: "#475569", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-                Промокод
+                Промокод или реферальный код
               </label>
               <div style={{ display: "flex", gap: 8 }}>
                 <input
@@ -736,7 +849,7 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
               <div style={{ fontSize: 28, fontWeight: 700 }}>Договорная</div>
             ) : (
               <div>
-                {promoPercent > 0 && (
+                {totalDiscount > 0 && (
                   <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 2 }}>
                     <span style={{ fontSize: 18, opacity: 0.6, textDecoration: "line-through" }}>{basePrice} BYN</span>
                   </div>
@@ -746,8 +859,15 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
                     {price}
                   </span>
                   <span style={{ fontSize: 18, opacity: 0.85 }}>BYN</span>
-                  {promoPercent > 0 && <span style={{ fontSize: 13, background: "rgba(255,255,255,0.25)", borderRadius: 8, padding: "2px 8px", fontWeight: 600 }}>−{promoPercent}%</span>}
+                  {totalDiscount > 0 && <span style={{ fontSize: 13, background: "rgba(255,255,255,0.25)", borderRadius: 8, padding: "2px 8px", fontWeight: 600 }}>−{totalDiscount}%</span>}
                 </div>
+                {totalDiscount > 0 && (
+                  <div style={{ fontSize: 11, opacity: 0.8, marginTop: 4, display: "flex", flexWrap: "wrap", gap: 4 }}>
+                    {autoDiscount > 0 && <span>🎁 первый заказ −{autoDiscount}%</span>}
+                    {promoPercent > 0 && <span>🏷 {promoLabel} −{promoPercent}%</span>}
+                    {subDiscount > 0 && <span>📅 абонемент −{subDiscount}%</span>}
+                  </div>
+                )}
               </div>
             )}
             <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4 }}>Точная цена — после осмотра</div>

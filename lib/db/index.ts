@@ -140,6 +140,9 @@ async function initSchema(sql: ReturnType<typeof postgres>) {
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS tg_user_id TEXT`,
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS contact_preference TEXT DEFAULT 'callback'`,
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS price_actual REAL`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code TEXT`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by TEXT`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code) WHERE referral_code IS NOT NULL`,
   ];
 
   for (const m of migrations) {
