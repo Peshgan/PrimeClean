@@ -17,21 +17,28 @@ export async function GET() {
   try {
     const sql = await getDb();
     const dbReviews = await sql`
-      SELECT id, author_name, rating, service_name, text, photo_url, created_at
+      SELECT id, author_name, rating, service_name, text, photo_url, extra_photos, created_at
       FROM reviews WHERE is_approved = 1
       ORDER BY created_at DESC LIMIT 50
     `;
 
-    const formatted = dbReviews.map((r) => ({
-      id: `db_${r.id}`,
-      name: r.author_name,
-      avatar: String(r.author_name).slice(0, 2).toUpperCase(),
-      rating: r.rating,
-      date: String(r.created_at).split("T")[0],
-      service: r.service_name ?? "Клининг",
-      text: r.text,
-      photo_url: r.photo_url,
-    }));
+    const formatted = dbReviews.map((r) => {
+      let extraPhotos: string[] = [];
+      try {
+        if (r.extra_photos) extraPhotos = JSON.parse(r.extra_photos as string);
+      } catch {}
+      return {
+        id: `db_${r.id}`,
+        name: r.author_name,
+        avatar: String(r.author_name).slice(0, 2).toUpperCase(),
+        rating: r.rating,
+        date: String(r.created_at).split("T")[0],
+        service: r.service_name ?? "Клининг",
+        text: r.text,
+        photo_url: r.photo_url,
+        extra_photos: extraPhotos,
+      };
+    });
 
     return NextResponse.json({ reviews: [...formatted, ...staticReviews] });
   } catch {

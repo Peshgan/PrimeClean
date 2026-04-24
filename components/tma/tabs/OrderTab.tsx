@@ -328,7 +328,13 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
   const [error, setError] = useState("");
   const [showPhoneHint, setShowPhoneHint] = useState(false);
 
-  const price = calcPrice(serviceType, area, extrasMap);
+  // Promo code
+  const [promoInput, setPromoInput] = useState("");
+  const [promoState, setPromoState] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
+  const [promoPercent, setPromoPercent] = useState(0);
+
+  const basePrice = calcPrice(serviceType, area, extrasMap);
+  const price = promoPercent > 0 ? Math.round(basePrice * (1 - promoPercent / 100)) : basePrice;
 
   const requestContact = useCallback(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -364,6 +370,26 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
   const handlePhoneFocus = useCallback(() => {
     if (!phone) setShowPhoneHint(true);
   }, [phone]);
+
+  const applyPromo = useCallback(async () => {
+    const code = promoInput.trim().toUpperCase();
+    if (!code) return;
+    setPromoState("checking");
+    try {
+      const res = await fetch(`/api/promo?code=${encodeURIComponent(code)}`);
+      const d = await res.json();
+      if (d.valid) {
+        setPromoPercent(d.percent);
+        setPromoState("valid");
+      } else {
+        setPromoPercent(0);
+        setPromoState("invalid");
+      }
+    } catch {
+      setPromoPercent(0);
+      setPromoState("invalid");
+    }
+  }, [promoInput]);
 
   const setExtraQty = useCallback((key: string, qty: number) => {
     setExtrasMap((prev) => {
@@ -415,7 +441,10 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
           area,
           extras: extrasMap,
           priceEstimate: price > 0 ? price : undefined,
-          comment: comment.trim() || undefined,
+          comment: [
+            promoPercent > 0 ? `[Промокод: ${promoInput} −${promoPercent}%]` : "",
+            comment.trim(),
+          ].filter(Boolean).join(" ") || undefined,
           userTelegramId: tgUserId,
           tgUsername,
           tgUserId,
@@ -652,6 +681,46 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             </div>
           )}
 
+          {/* Promo code */}
+          {serviceType !== "specialized" && (
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "block", color: "#475569", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
+                Промокод
+              </label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  value={promoInput}
+                  onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoState("idle"); setPromoPercent(0); }}
+                  placeholder="Введите промокод"
+                  style={{ flex: 1, border: "1.5px solid #E2EDF4", borderRadius: 12, padding: "11px 14px", fontSize: 14, color: "#1A2332", background: "white", outline: "none", boxSizing: "border-box" as const }}
+                />
+                <button
+                  type="button"
+                  onClick={applyPromo}
+                  disabled={!promoInput.trim() || promoState === "checking"}
+                  style={{
+                    background: promoInput.trim() ? "#0077B6" : "#E2EDF4",
+                    color: promoInput.trim() ? "white" : "#94A3B8",
+                    border: "none", borderRadius: 12,
+                    padding: "0 16px", fontSize: 13, fontWeight: 700,
+                    cursor: promoInput.trim() ? "pointer" : "not-allowed",
+                    whiteSpace: "nowrap",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {promoState === "checking" ? "..." : "Применить"}
+                </button>
+              </div>
+              {promoState === "valid" && (
+                <div style={{ color: "#00875A", fontSize: 12, marginTop: 5, fontWeight: 600 }}>✅ Скидка {promoPercent}% применена!</div>
+              )}
+              {promoState === "invalid" && (
+                <div style={{ color: "#DC2626", fontSize: 12, marginTop: 5 }}>❌ Промокод не найден или истёк</div>
+              )}
+            </div>
+          )}
+
           {/* Price result */}
           <div
             style={{
@@ -666,11 +735,19 @@ export default function OrderTab({ user, preselectedService, onServiceChange }: 
             {serviceType === "specialized" ? (
               <div style={{ fontSize: 28, fontWeight: 700 }}>Договорная</div>
             ) : (
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                <span style={{ fontSize: 40, fontWeight: 700, fontFamily: "var(--font-montserrat, 'Montserrat', sans-serif)" }}>
-                  {price}
-                </span>
-                <span style={{ fontSize: 18, opacity: 0.85 }}>BYN</span>
+              <div>
+                {promoPercent > 0 && (
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 2 }}>
+                    <span style={{ fontSize: 18, opacity: 0.6, textDecoration: "line-through" }}>{basePrice} BYN</span>
+                  </div>
+                )}
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                  <span style={{ fontSize: 40, fontWeight: 700, fontFamily: "var(--font-montserrat, 'Montserrat', sans-serif)" }}>
+                    {price}
+                  </span>
+                  <span style={{ fontSize: 18, opacity: 0.85 }}>BYN</span>
+                  {promoPercent > 0 && <span style={{ fontSize: 13, background: "rgba(255,255,255,0.25)", borderRadius: 8, padding: "2px 8px", fontWeight: 600 }}>−{promoPercent}%</span>}
+                </div>
               </div>
             )}
             <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4 }}>Точная цена — после осмотра</div>

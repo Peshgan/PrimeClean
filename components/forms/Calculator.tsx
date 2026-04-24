@@ -181,21 +181,22 @@ export default function Calculator({ onOrder }: CalculatorProps) {
                         +{e.price} BYN{qty > 1 ? ` × ${qty} = ${e.price * qty} BYN` : ""}
                       </span>
                     </span>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {active && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => setQty(e.value, qty - 1)}
-                            className="w-7 h-7 rounded-lg border-2 border-[#00C9A7] bg-white text-[#00875A] font-bold text-base flex items-center justify-center hover:bg-[#E6FFF9] transition-colors cursor-pointer"
-                          >
-                            −
-                          </button>
-                          <span className="w-5 text-center font-bold text-[#00875A] text-sm">
-                            {qty}
-                          </span>
-                        </>
-                      )}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setQty(e.value, qty - 1)}
+                        disabled={qty === 0}
+                        className={`w-7 h-7 rounded-lg border-2 font-bold text-base flex items-center justify-center transition-colors cursor-pointer ${
+                          qty > 0
+                            ? "border-[#00C9A7] bg-white text-[#00875A] hover:bg-[#E6FFF9]"
+                            : "border-[#E2EDF4] bg-white text-[#CBD5E1] cursor-not-allowed"
+                        }`}
+                      >
+                        −
+                      </button>
+                      <span className={`w-5 text-center font-bold text-sm ${active ? "text-[#00875A]" : "text-[#CBD5E1]"}`}>
+                        {qty}
+                      </span>
                       <button
                         type="button"
                         onClick={() => setQty(e.value, qty + 1)}

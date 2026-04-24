@@ -13,6 +13,7 @@ interface ReviewItem {
   service: string;
   text: string;
   photo_url?: string | null;
+  extra_photos?: string[];
 }
 
 const RU_MONTHS = [
@@ -454,7 +455,7 @@ export default function ReviewsTab({ user }: ReviewsTabProps) {
 
             {review.photo_url && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
-                {[review.photo_url, ...((review as ReviewItem & { extra_photos?: string[] }).extra_photos ?? [])].filter(Boolean).map((url, i) => (
+                {[review.photo_url, ...(review.extra_photos ?? [])].filter(Boolean).map((url, i) => (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     key={i}

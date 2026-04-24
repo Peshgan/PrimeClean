@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckCircle, Users, Award, Heart } from "lucide-react";
+import { CheckCircle, Users, Award, Heart, Phone } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "О компании PrimeClean — клининг в Минске с 2019 года",
@@ -41,6 +41,21 @@ export default function AboutPage() {
                 Наша миссия — освободить ваше время от уборки. Мы берём на себя всю работу,
                 используем только безопасные сертифицированные средства и гарантируем результат.
               </p>
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <Link
+                  href="/#booking"
+                  className="inline-flex items-center justify-center font-semibold rounded-2xl bg-[#00C9A7] text-white hover:bg-[#00A887] shadow-lg shadow-[#00C9A7]/25 px-8 py-4 text-lg transition-colors"
+                >
+                  Заказать уборку
+                </Link>
+                <a
+                  href="tel:+375444789360"
+                  className="inline-flex items-center justify-center gap-2 font-semibold rounded-2xl border-2 border-[#00B4D8] text-[#0077B6] hover:bg-[#F0FDFF] px-8 py-4 text-lg transition-colors"
+                >
+                  <Phone size={18} />
+                  +375 (44) 478-93-60
+                </a>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               {[
