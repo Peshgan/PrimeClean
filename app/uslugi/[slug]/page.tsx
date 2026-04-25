@@ -82,7 +82,7 @@ export default async function ServicePage({
       .map((t) => ({
         "@type": "Offer",
         name: t.name,
-        price: String(t.price),
+        price: t.price,
         priceCurrency: "BYN",
         availability: "https://schema.org/InStock",
         url: `https://primeclean.by/uslugi/${service.slug}`,

@@ -58,11 +58,11 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
     ],
     apple: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    shortcut: "/favicon.ico",
   },
   verification: {
     // Подстави свои коды после подтверждения прав в вебмастерах:
@@ -109,11 +109,11 @@ const schemaOrg = {
     "@type": "OfferCatalog",
     name: "Услуги клининга",
     itemListElement: [
-      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Уборка квартир" }, priceCurrency: "BYN", price: "80" },
-      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Клининг офисов" }, priceCurrency: "BYN", price: "180" },
-      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Генеральная уборка" }, priceCurrency: "BYN", price: "240" },
-      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Уборка после ремонта" }, priceCurrency: "BYN", price: "360" },
-      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Химчистка мебели" }, priceCurrency: "BYN", price: "60" },
+      { "@type": "ListItem", position: 1, item: { "@type": "Service", name: "Уборка квартир", url: "https://primeclean.by/uslugi/uborka-kvartir-minsk" } },
+      { "@type": "ListItem", position: 2, item: { "@type": "Service", name: "Клининг офисов", url: "https://primeclean.by/uslugi/klining-ofisov-minsk" } },
+      { "@type": "ListItem", position: 3, item: { "@type": "Service", name: "Генеральная уборка", url: "https://primeclean.by/uslugi/generalnaya-uborka-minsk" } },
+      { "@type": "ListItem", position: 4, item: { "@type": "Service", name: "Уборка после ремонта", url: "https://primeclean.by/uslugi/uborka-posle-remonta-minsk" } },
+      { "@type": "ListItem", position: 5, item: { "@type": "Service", name: "Химчистка мебели", url: "https://primeclean.by/uslugi/khimchistka-minsk" } },
     ],
   },
   aggregateRating: {
