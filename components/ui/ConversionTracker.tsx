@@ -7,7 +7,7 @@ export default function ConversionTracker() {
     const gtag = (window as any).gtag;
     if (typeof gtag !== "function") return;
     gtag("event", "conversion", {
-      send_to: "AW-18108437624/7n_uCNyD1KIcEPic47pD",
+      send_to: "AW-18108437624/p1SVCMnv1aIcEPio47pD",
     });
   }, []);
 
