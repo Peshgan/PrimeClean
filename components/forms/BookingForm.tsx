@@ -32,7 +32,6 @@ export default function BookingForm({ preselectedService, compact = false }: Boo
 
   useEffect(() => {
     if (state.success) {
-      fireBookingConversion();
       formRef.current?.reset();
       setTimeout(() => router.push("/spasibo"), 1500);
     }
@@ -186,6 +185,7 @@ export default function BookingForm({ preselectedService, compact = false }: Boo
         loading={isPending}
         className="mt-4 w-full"
         size="lg"
+        onClick={() => fireBookingConversion()}
       >
         {isPending ? "Отправляем..." : "Оставить заявку"}
       </Button>
