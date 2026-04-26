@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CheckCircle, Phone, Clock, ArrowRight } from "lucide-react";
-import ConversionTracker from "@/components/ui/ConversionTracker";
-
 export const metadata: Metadata = {
   title: "Заявка принята — PrimeClean",
   description: "Ваша заявка на уборку успешно принята. Мы перезвоним в течение 15 минут.",
@@ -12,7 +10,6 @@ export const metadata: Metadata = {
 export default function ThanksPage() {
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#F0FDFF] to-white pt-20">
-      <ConversionTracker />
       <div className="max-w-lg w-full mx-auto px-4 text-center">
         {/* Icon */}
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#00C9A7] to-[#00A887] text-white flex items-center justify-center mx-auto mb-8 shadow-xl shadow-[#00C9A7]/30">
