@@ -115,7 +115,7 @@ export default function HeroSection() {
 
             {/* Floating stats */}
             <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4 border border-[#E2EDF4]">
-              <div className="text-2xl font-bold text-[#1A2332]">3 500+</div>
+              <div className="text-2xl font-bold text-[#1A2332]">350+</div>
               <div className="text-sm text-[#94A3B8]">убранных квартир</div>
             </div>
 

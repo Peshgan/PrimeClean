@@ -1,4 +1,4 @@
-const CONVERSION_ID = "AW-18108437624/YCMdCJvel6IcEPio47pD";
+const CONVERSION_ID = "AW-18108437624/7n_uCNyD1KIcEPic47pD";
 
 export function fireBookingConversion(transactionId?: string | number) {
   if (typeof window === "undefined") return;
