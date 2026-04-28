@@ -14,6 +14,7 @@ export const metadata: Metadata = {
     description: "4.9 из 5 — реальные отзывы об уборке квартир и офисов в Минске.",
     url: "https://primeclean.by/otzyvy",
     type: "website",
+    images: [{ url: "/images/primeclean_cleaning_minks.jpg", width: 1200, height: 630, alt: "Отзывы клиентов PrimeClean" }],
   },
 };
 

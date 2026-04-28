@@ -42,6 +42,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       publishedTime: iso,
       authors: ["PrimeClean"],
+      images: [{ url: "/images/primeclean_cleaning_minks.jpg", width: 1200, height: 630, alt: post.title }],
     },
   };
 }

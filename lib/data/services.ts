@@ -28,7 +28,7 @@ export const services: Service[] = [
     image: "https://res.cloudinary.com/dkbltmyul/image/upload/v1776189687/uborka-kvartir-minsk_puttkr.jpg",
     priceFrom: 80,
     duration: "2–4 часа",
-    metaTitle: "Уборка квартир в Минске — 2 BYN/м² | PrimeClean",
+    metaTitle: "Уборка квартир в Минске — 2 BYN/м²",
     metaDescription:
       "Профессиональная уборка квартир в Минске — 2 BYN за м². Опытные уборщицы, экологичная химия, гарантия качества. Заказать онлайн или по телефону.",
     includes: [
@@ -69,7 +69,7 @@ export const services: Service[] = [
     image: "https://res.cloudinary.com/dkbltmyul/image/upload/v1776189235/klining-ofisov-minsk_edzv8r.jpg",
     priceFrom: 180,
     duration: "по договорённости",
-    metaTitle: "Клининг офисов в Минске — 1.8 BYN/м² | PrimeClean",
+    metaTitle: "Клининг офисов в Минске — 1.8 BYN/м²",
     metaDescription:
       "Профессиональный клининг офисов в Минске — 1.8 BYN за м². Ежедневная и разовая уборка. Работаем в удобное для вас время, не мешая рабочему процессу.",
     includes: [
@@ -109,7 +109,7 @@ export const services: Service[] = [
     image: "https://res.cloudinary.com/dkbltmyul/image/upload/v1776189235/generalnaya-uborka-minsk_vuqxhq.jpg",
     priceFrom: 240,
     duration: "4–8 часов",
-    metaTitle: "Генеральная уборка квартиры в Минске — 6 BYN/м² | PrimeClean",
+    metaTitle: "Генеральная уборка квартиры в Минске — 6 BYN/м²",
     metaDescription:
       "Генеральная уборка квартиры в Минске — 6 BYN за м². Мойка окон, чистка мебели, глубокая обработка всех поверхностей. Гарантия результата.",
     includes: [
@@ -150,7 +150,7 @@ export const services: Service[] = [
     image: "https://res.cloudinary.com/dkbltmyul/image/upload/v1776189235/uborka-posle-remonta-minsk_yunzqj.jpg",
     priceFrom: 360,
     duration: "5–10 часов",
-    metaTitle: "Уборка после ремонта в Минске — 9 BYN/м² | PrimeClean",
+    metaTitle: "Уборка после ремонта в Минске — 9 BYN/м²",
     metaDescription:
       "Профессиональная уборка после ремонта в Минске — 9 BYN за м². Удалим строительную пыль, цемент, краску. Сдадим квартиру в идеальном состоянии.",
     includes: [
@@ -191,7 +191,7 @@ export const services: Service[] = [
     image: "https://res.cloudinary.com/dkbltmyul/image/upload/v1776189235/uborka-domov-minsk_jbjb0a.jpg",
     priceFrom: 180,
     duration: "4–10 часов",
-    metaTitle: "Уборка домов и коттеджей в Минске — от 180 BYN | PrimeClean",
+    metaTitle: "Уборка домов и коттеджей в Минске — от 180 BYN",
     metaDescription:
       "Профессиональная уборка частных домов и коттеджей в Минске от 180 BYN. Большой опыт, собственное оборудование, гарантия качества.",
     includes: [
@@ -231,7 +231,7 @@ export const services: Service[] = [
     image: "https://res.cloudinary.com/dkbltmyul/image/upload/v1776191740/khimchistka-mebeli_qhz0dq.jpg",
     priceFrom: 18,
     duration: "1–3 часа",
-    metaTitle: "Химчистка мягкой мебели и ковров в Минске | PrimeClean",
+    metaTitle: "Химчистка мягкой мебели и ковров в Минске",
     metaDescription:
       "Профессиональная химчистка диванов, матрасов и ковров в Минске. Удаление любых пятен и запахов. Выезд на дом. Доступные цены.",
     includes: [
@@ -302,7 +302,7 @@ export const services: Service[] = [
     image: "https://res.cloudinary.com/dkbltmyul/image/upload/v1776198023/spetsifichnaya-uborka_xgqiau.jpg",
     priceFrom: 0,
     duration: "Индивидуально",
-    metaTitle: "Специализированная уборка в Минске | PrimeClean",
+    metaTitle: "Специализированная уборка в Минске",
     metaDescription:
       "Профессиональная уборка после пожара, затопления, после умерших и уборка мест захоронений в Минске. Гарантия безопасности и устранения любых запахов.",
     includes: [

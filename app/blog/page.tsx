@@ -4,9 +4,10 @@ import { ArrowRight } from "lucide-react";
 import { blogPosts } from "@/lib/data/blog";
 
 export const metadata: Metadata = {
-  title: "Блог о клининге — полезные статьи | PrimeClean",
+  title: "Блог о клининге — полезные статьи",
   description:
     "Полезные статьи о профессиональной уборке, клининге, выборе средств и лайфхаки для поддержания чистоты в доме и офисе в Минске.",
+  alternates: { canonical: "/blog" },
 };
 
 export default function BlogPage() {

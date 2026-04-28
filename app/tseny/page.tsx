@@ -5,9 +5,10 @@ import { services } from "@/lib/data/services";
 import Calculator from "@/components/forms/Calculator";
 
 export const metadata: Metadata = {
-  title: "Цены на уборку в Минске — прозрачный прайс-лист | PrimeClean",
+  title: "Цены на уборку в Минске — прозрачный прайс-лист",
   description:
-    "Стоимость уборки квартир и офисов в Минске от PrimeClean. Прозрачные цены без скрытых платежей. Уборка квартиры от 79 BYN. Калькулятор стоимости онлайн.",
+    "Стоимость уборки квартир и офисов в Минске от PrimeClean. Прозрачные цены без скрытых платежей. Уборка квартиры от 80 BYN. Калькулятор стоимости онлайн.",
+  alternates: { canonical: "/tseny" },
 };
 
 export default function PricesPage() {

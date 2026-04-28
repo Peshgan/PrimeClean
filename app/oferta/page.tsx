@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Публичная оферта — PrimeClean",
+  title: "Публичная оферта",
   description:
     "Публичная оферта на оказание клининговых услуг PrimeClean в Минске. Условия заказа, оплаты, гарантий и ответственности сторон.",
   alternates: { canonical: "/oferta" },

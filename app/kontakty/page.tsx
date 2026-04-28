@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Контакты PrimeClean — клининг в Минске",
   description:
     "Контакты клининговой компании PrimeClean в Минске. Телефон, адрес, время работы, мессенджеры. Заказать уборку онлайн или по телефону.",
+  alternates: { canonical: "/kontakty" },
 };
 
 export default function ContactsPage() {

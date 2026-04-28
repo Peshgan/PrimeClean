@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Политика конфиденциальности — PrimeClean",
+  title: "Политика конфиденциальности",
   description:
     "Политика обработки персональных данных PrimeClean. Обработка в соответствии с Законом Республики Беларусь «О защите персональных данных».",
   alternates: { canonical: "/politika-konfidencialnosti" },

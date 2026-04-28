@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "О компании PrimeClean — клининг в Минске с 2019 года",
   description:
     "О клининговой компании PrimeClean в Минске. Команда 30+ специалистов, более 350 убранных объектов, сертифицированная химия и гарантия качества с 2019 года.",
+  alternates: { canonical: "/o-nas" },
 };
 
 const milestones = [

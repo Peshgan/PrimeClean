@@ -41,28 +41,28 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
-    locale: "ru_RU",
+    locale: "ru_BY",
     url: "https://primeclean.by",
     siteName: "PrimeClean",
     title: "PrimeClean — Профессиональная уборка в Минске",
     description:
       "Профессиональный клининг квартир и офисов в Минске. Быстро, качественно, с гарантией.",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "PrimeClean Минск" }],
+    images: [{ url: "/images/primeclean_cleaning_minks.jpg", width: 1200, height: 630, alt: "PrimeClean Минск" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "PrimeClean — Уборка в Минске",
     description: "Профессиональный клининг квартир и офисов в Минске.",
-    images: ["/og-image.jpg"],
+    images: ["/images/primeclean_cleaning_minks.jpg"],
   },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
   icons: {
     icon: [
+      { url: "/images/favicon.png", type: "image/png" },
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
     ],
-    apple: "/favicon.svg",
-    shortcut: "/favicon.ico",
+    apple: "/images/favicon.png",
+    shortcut: "/images/favicon.png",
   },
   verification: {
     // Подстави свои коды после подтверждения прав в вебмастерах:
@@ -73,14 +73,14 @@ export const metadata: Metadata = {
 
 const schemaOrg = {
   "@context": "https://schema.org",
-  "@type": "CleaningService",
+  "@type": ["LocalBusiness", "CleaningService"],
   "@id": "https://primeclean.by/#business",
   name: "PrimeClean",
   url: "https://primeclean.by",
   description:
     "Профессиональный клининг квартир, офисов и домов в Минске. Генеральная уборка, уборка после ремонта, мытьё окон, химчистка мебели.",
-  image: "https://primeclean.by/og-image.jpg",
-  logo: "https://primeclean.by/og-image.jpg",
+  image: "https://primeclean.by/images/primeclean_cleaning_minks.jpg",
+  logo: "https://primeclean.by/images/primeclean_cleaning_minks.jpg",
   telephone: "+375444789360",
   email: "info@primeclean.by",
   address: {
