@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Phone, Mail, MapPin, Clock, MessageCircle } from "lucide-react";
+import { Phone, Mail, Clock, MessageCircle } from "lucide-react";
 
 const serviceLinks = [
   { label: "Уборка квартир", href: "/uslugi/uborka-kvartir-minsk" },
@@ -118,10 +118,6 @@ export default function Footer() {
                   <Mail size={15} className="mt-0.5 shrink-0 text-[#00B4D8]" />
                   info@primeclean.by
                 </a>
-              </li>
-              <li className="flex items-start gap-3 text-[#94A3B8] text-sm">
-                <MapPin size={15} className="mt-0.5 shrink-0 text-[#00B4D8]" />
-                Минск и Минская область
               </li>
               <li className="flex items-start gap-3 text-[#94A3B8] text-sm">
                 <Clock size={15} className="mt-0.5 shrink-0 text-[#00B4D8]" />

@@ -50,7 +50,7 @@ export default function HeroSection() {
             <ul className="space-y-3">
               {[
                 "Работаем с 08:00 до 20:00, включая выходные",
-                "Уборка квартиры от 79 BYN",
+                "Уборка квартиры от 80 BYN",
                 "Без предоплаты — платите после приёмки",
               ].map((item) => (
                 <li key={item} className="flex items-center gap-3 text-[#475569]">
@@ -76,31 +76,46 @@ export default function HeroSection() {
               </Link>
             </div>
 
-            {/* Phone */}
-            <a
-              href="tel:+375444789360"
-              className="inline-flex items-center gap-2 text-[#0077B6] font-semibold hover:text-[#00B4D8] transition-colors cursor-pointer"
-            >
-              <Phone size={18} />
-              +375 (44) 478-93-60
-            </a>
+            {/* Phone + Telegram */}
+            <div className="flex flex-wrap items-center gap-4">
+              <a
+                href="tel:+375444789360"
+                className="inline-flex items-center gap-2 text-[#0077B6] font-semibold hover:text-[#00B4D8] transition-colors cursor-pointer"
+              >
+                <Phone size={18} />
+                +375 (44) 478-93-60
+              </a>
+              <a
+                href="https://t.me/primeclean_bybot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-[#0077B6] font-semibold hover:text-[#00B4D8] transition-colors cursor-pointer"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.4l-2.97-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.968.159z"/></svg>
+                Написать в Telegram
+              </a>
+            </div>
           </div>
 
           {/* Visual */}
           <div className="relative">
             <div className="relative rounded-3xl overflow-hidden shadow-2xl aspect-[4/5] lg:aspect-[3/4]">
               <img
-                src="https://res.cloudinary.com/dkbltmyul/image/upload/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg"
+                src="https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_90,w_900/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg"
+                srcSet="https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_90,w_480/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg 480w, https://res.cloudinary.com/dkbltmyul/image/upload/f_auto,q_90,w_900/v1776550300/primeclean_cleaning_minks_sxtbc5.jpg 900w"
+                sizes="(max-width: 768px) 100vw, 50vw"
                 alt="Профессиональная уборка квартиры в Минске — PrimeClean"
                 className="w-full h-full object-cover"
                 loading="eager"
+                fetchPriority="high"
+                decoding="sync"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0077B6]/20 to-transparent" />
             </div>
 
             {/* Floating stats */}
             <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4 border border-[#E2EDF4]">
-              <div className="text-2xl font-bold text-[#1A2332]">3 500+</div>
+              <div className="text-2xl font-bold text-[#1A2332]">350+</div>
               <div className="text-sm text-[#94A3B8]">убранных квартир</div>
             </div>
 

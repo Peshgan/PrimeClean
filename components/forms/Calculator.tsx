@@ -8,10 +8,10 @@ type ServiceType = "standard" | "general" | "after-repair" | "office" | "dry-cle
 type ExtrasMap = Record<string, number>;
 
 const serviceTypes: { value: ServiceType; label: string; basePrice: number; unit: string }[] = [
-  { value: "standard", label: "Стандартная уборка", basePrice: 1.8, unit: "BYN/м²" },
-  { value: "general", label: "Генеральная уборка", basePrice: 2.8, unit: "BYN/м²" },
-  { value: "after-repair", label: "После ремонта", basePrice: 3.5, unit: "BYN/м²" },
-  { value: "office", label: "Уборка офиса", basePrice: 1.5, unit: "BYN/м²" },
+  { value: "standard", label: "Стандартная уборка", basePrice: 2, unit: "2 BYN/м²" },
+  { value: "general", label: "Генеральная уборка", basePrice: 6, unit: "6 BYN/м²" },
+  { value: "after-repair", label: "После ремонта", basePrice: 9, unit: "9 BYN/м²" },
+  { value: "office", label: "Уборка офиса", basePrice: 1.8, unit: "1.8 BYN/м²" },
   { value: "dry-cleaning", label: "Химчистка", basePrice: 7, unit: "BYN/м²" },
   { value: "specialized", label: "Спец. уборка", basePrice: 0, unit: "индивидуально" },
 ];
@@ -21,6 +21,7 @@ const cleaningExtras: { value: string; label: string; price: number; hasQty?: bo
   { value: "balcony", label: "Балкон / лоджия", price: 30, hasQty: true },
   { value: "cabinet", label: "Кухонный шкафчик", price: 3, hasQty: true },
   { value: "wardrobe", label: "Шкаф", price: 10, hasQty: true },
+  { value: "hood", label: "Вытяжка", price: 15 },
   { value: "fridge", label: "Холодильник изнутри", price: 23 },
   { value: "oven", label: "Духовка", price: 25 },
   { value: "microwave", label: "Микроволновка", price: 20 },
@@ -180,21 +181,22 @@ export default function Calculator({ onOrder }: CalculatorProps) {
                         +{e.price} BYN{qty > 1 ? ` × ${qty} = ${e.price * qty} BYN` : ""}
                       </span>
                     </span>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {active && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => setQty(e.value, qty - 1)}
-                            className="w-7 h-7 rounded-lg border-2 border-[#00C9A7] bg-white text-[#00875A] font-bold text-base flex items-center justify-center hover:bg-[#E6FFF9] transition-colors cursor-pointer"
-                          >
-                            −
-                          </button>
-                          <span className="w-5 text-center font-bold text-[#00875A] text-sm">
-                            {qty}
-                          </span>
-                        </>
-                      )}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setQty(e.value, qty - 1)}
+                        disabled={qty === 0}
+                        className={`w-7 h-7 rounded-lg border-2 font-bold text-base flex items-center justify-center transition-colors cursor-pointer ${
+                          qty > 0
+                            ? "border-[#00C9A7] bg-white text-[#00875A] hover:bg-[#E6FFF9]"
+                            : "border-[#E2EDF4] bg-white text-[#CBD5E1] cursor-not-allowed"
+                        }`}
+                      >
+                        −
+                      </button>
+                      <span className={`w-5 text-center font-bold text-sm ${active ? "text-[#00875A]" : "text-[#CBD5E1]"}`}>
+                        {qty}
+                      </span>
                       <button
                         type="button"
                         onClick={() => setQty(e.value, qty + 1)}

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Phone, Mail, MapPin, Clock, MessageCircle, Send } from "lucide-react";
+import { Phone, Mail, Clock, MessageCircle, Send } from "lucide-react";
 import BookingForm from "@/components/forms/BookingForm";
 
 export const metadata: Metadata = {
@@ -60,17 +60,7 @@ export default function ContactsPage() {
                   </div>
                 </a>
 
-                <div className="flex items-start gap-4 p-4 bg-[#F0FDFF] rounded-2xl border border-[#E2EDF4]">
-                  <div className="w-11 h-11 rounded-xl bg-white border border-[#E2EDF4] flex items-center justify-center flex-shrink-0">
-                    <MapPin size={18} className="text-[#00B4D8]" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-[#1A2332]">г. Минск</div>
-                    <div className="text-sm text-[#94A3B8]">Минск и Минская область</div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4 p-4 bg-[#F0FDFF] rounded-2xl border border-[#E2EDF4]">
+<div className="flex items-start gap-4 p-4 bg-[#F0FDFF] rounded-2xl border border-[#E2EDF4]">
                   <div className="w-11 h-11 rounded-xl bg-white border border-[#E2EDF4] flex items-center justify-center flex-shrink-0">
                     <Clock size={18} className="text-[#00B4D8]" />
                   </div>

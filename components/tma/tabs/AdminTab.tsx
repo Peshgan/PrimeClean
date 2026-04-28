@@ -54,7 +54,7 @@ interface AdminTabProps {
   tgId: string;
 }
 
-type Section = "dashboard" | "bookings" | "reviews";
+type Section = "dashboard" | "bookings" | "reviews" | "promo";
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
   new: { label: "Новая", color: "#0077B6", bg: "#EFF9FF" },
@@ -165,11 +165,12 @@ export default function AdminTab({ tgId }: AdminTabProps) {
 
       {/* Section switcher */}
       <div style={{ padding: "12px 16px 0" }}>
-        <div style={{ display: "flex", background: "white", borderRadius: 12, padding: 4, border: "1px solid #E2EDF4", gap: 4 }}>
+        <div style={{ display: "flex", background: "white", borderRadius: 12, padding: 4, border: "1px solid #E2EDF4", gap: 4, overflowX: "auto" }}>
           {([
             { id: "dashboard", label: "📊 Дашборд" },
             { id: "bookings", label: "📋 Заявки" },
             { id: "reviews", label: "💬 Отзывы" },
+            { id: "promo", label: "🎫 Промо" },
           ] as const).map((s) => (
             <button
               key={s.id}
@@ -210,6 +211,7 @@ export default function AdminTab({ tgId }: AdminTabProps) {
         {section === "dashboard" && <Dashboard tgId={tgId} />}
         {section === "bookings" && <BookingsSection tgId={tgId} onToast={showToast} />}
         {section === "reviews" && <ReviewsSection tgId={tgId} onToast={showToast} />}
+        {section === "promo" && <PromoSection tgId={tgId} />}
       </div>
     </div>
   );
@@ -505,6 +507,29 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
                 </div>
               </button>
 
+              {!isOpen && (
+                <div style={{ padding: "0 14px 10px", display: "flex", gap: 8 }}>
+                  <a
+                    href={`tel:${b.phone}`}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#EFF9FF", color: "#0077B6", border: "1px solid #BAE6FD", borderRadius: 8, padding: "5px 12px", fontSize: 11, fontWeight: 600, textDecoration: "none" }}
+                  >
+                    📞 Позвонить
+                  </a>
+                  {b.tg_username && (
+                    <a
+                      href={`https://t.me/${b.tg_username}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#F0FDFF", color: "#0077B6", border: "1px solid #BAE6FD", borderRadius: 8, padding: "5px 12px", fontSize: 11, fontWeight: 600, textDecoration: "none" }}
+                    >
+                      ✈️ Telegram
+                    </a>
+                  )}
+                </div>
+              )}
+
               {isOpen && (
                 <div style={{
                   padding: "4px 14px 14px", borderTop: "1px solid #F1F5F9",
@@ -645,6 +670,76 @@ function BookingsSection({ tgId, onToast }: { tgId: string; onToast: (s: string)
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+// --- Promo Codes ---
+function PromoSection({ tgId }: { tgId: string }) {
+  const [codes, setCodes] = useState<{ code: string; percent: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/admin/tma?tgId=${tgId}&action=promos`)
+      .then((r) => r.json())
+      .then((d) => setCodes(d.codes ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [tgId]);
+
+  return (
+    <div>
+      <div style={{ background: "#F0FDFF", border: "1px solid #BAE6FD", borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
+        <div style={{ color: "#0077B6", fontWeight: 700, fontSize: 13, marginBottom: 4 }}>Как добавить промокод</div>
+        <div style={{ color: "#475569", fontSize: 12, lineHeight: 1.6 }}>
+          В Vercel → Settings → Environment Variables добавьте или обновите:<br />
+          <code style={{ background: "white", border: "1px solid #E2EDF4", borderRadius: 6, padding: "2px 6px", fontSize: 11 }}>
+            PROMO_CODES=КОД1:10,КОД2:15,КОД3:20
+          </code><br />
+          Формат: <b>КОД:ПРОЦЕНТ</b>. После сохранения — передеплой.
+        </div>
+      </div>
+
+      <div style={{ fontWeight: 700, color: "#1A2332", fontSize: 15, marginBottom: 10 }}>Активные промокоды</div>
+
+      {loading && <div style={{ textAlign: "center", padding: 32, color: "#94A3B8" }}>⏳ Загрузка…</div>}
+
+      {!loading && codes.length === 0 && (
+        <div style={{ textAlign: "center", padding: 32, color: "#94A3B8" }}>
+          <div style={{ fontSize: 36, marginBottom: 8 }}>🎫</div>
+          <p style={{ margin: 0, fontSize: 13 }}>Промокоды не настроены.<br />Добавьте их через переменную PROMO_CODES.</p>
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {codes.map((c) => (
+          <div key={c.code} style={{ background: "white", borderRadius: 14, border: "1px solid #E2EDF4", padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 2px 6px rgba(0,0,0,0.04)" }}>
+            <div style={{ fontSize: 24 }}>🎫</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 16, color: "#0077B6", letterSpacing: 1 }}>{c.code}</div>
+              <div style={{ color: "#94A3B8", fontSize: 12, marginTop: 2 }}>Скидка для клиента</div>
+            </div>
+            <div style={{ background: "#ECFDF5", color: "#00875A", borderRadius: 10, padding: "6px 14px", fontWeight: 800, fontSize: 18 }}>
+              −{c.percent}%
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginTop: 20, background: "white", borderRadius: 14, border: "1px solid #E2EDF4", padding: "14px 16px" }}>
+        <div style={{ fontWeight: 700, fontSize: 14, color: "#1A2332", marginBottom: 8 }}>💡 Идеи для промокодов</div>
+        {[
+          { code: "FIRST10", desc: "−10% для новых клиентов" },
+          { code: "FRIENDS15", desc: "−15% по реферальной программе" },
+          { code: "SPRING20", desc: "−20% сезонная акция" },
+          { code: "VIP25", desc: "−25% для постоянных клиентов" },
+        ].map((tip) => (
+          <div key={tip.code} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: "1px solid #F1F5F9" }}>
+            <code style={{ fontSize: 13, fontWeight: 700, color: "#0077B6" }}>{tip.code}</code>
+            <span style={{ color: "#475569", fontSize: 12 }}>{tip.desc}</span>
+          </div>
+        ))}
       </div>
     </div>
   );

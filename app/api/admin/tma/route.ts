@@ -94,6 +94,19 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  if (action === "promos") {
+    const codes: { code: string; percent: number }[] = [];
+    for (const pair of (process.env.PROMO_CODES ?? "").split(",")) {
+      const idx = pair.trim().lastIndexOf(":");
+      if (idx > 0) {
+        const code = pair.slice(0, idx).trim().toUpperCase();
+        const pct = Number(pair.slice(idx + 1).trim());
+        if (code && !isNaN(pct) && pct > 0) codes.push({ code, percent: pct });
+      }
+    }
+    return NextResponse.json({ codes });
+  }
+
   return NextResponse.json({ error: "Неизвестное действие" }, { status: 400 });
 }
 

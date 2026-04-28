@@ -120,6 +120,16 @@ export default function Header() {
                 <Phone size={15} />
                 +375 (44) 478-93-60
               </a>
+              <a
+                href="https://t.me/primeclean_bybot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-sm font-medium text-[#475569] hover:text-[#0077B6] transition-colors cursor-pointer"
+                aria-label="Написать в Telegram"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.19 13.4l-2.97-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.968.159z"/></svg>
+                Telegram
+              </a>
               <Link
                 href="#booking"
                 className="inline-flex items-center justify-center font-semibold rounded-2xl transition-colors duration-200 cursor-pointer bg-[#00C9A7] text-white hover:bg-[#00A887] shadow-lg shadow-[#00C9A7]/25 px-4 py-2 text-sm"

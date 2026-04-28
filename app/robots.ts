@@ -10,5 +10,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: "https://primeclean.by/sitemap.xml",
+    host: "https://primeclean.by",
   };
 }

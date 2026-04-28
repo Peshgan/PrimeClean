@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckCircle, Users, Award, Heart } from "lucide-react";
+import { CheckCircle, Users, Award, Heart, Phone } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "О компании PrimeClean — клининг в Минске с 2019 года",
   description:
-    "О клининговой компании PrimeClean в Минске. Команда 30+ специалистов, более 3500 убранных объектов, сертифицированная химия и гарантия качества с 2019 года.",
+    "О клининговой компании PrimeClean в Минске. Команда 30+ специалистов, более 350 убранных объектов, сертифицированная химия и гарантия качества с 2019 года.",
 };
 
 const milestones = [
   { year: "2019", event: "Основание компании. Первые 50 клиентов." },
   { year: "2020", event: "Расширение до 10 специалистов. Запуск офисного направления." },
   { year: "2022", event: "1 000-й выполненный заказ. Оценка 4.9 на Google." },
-  { year: "2024", event: "Команда 30+ специалистов. Более 3 500 убранных объектов." },
+  { year: "2024", event: "Команда 30+ специалистов. Более 350 убранных объектов." },
 ];
 
 export default function AboutPage() {
@@ -35,16 +35,31 @@ export default function AboutPage() {
               </h1>
               <p className="text-lg text-[#475569] leading-relaxed">
                 С 2019 года мы делаем дома и офисы Минска чище. За это время выполнили более
-                3 500 заказов и завоевали доверие сотен постоянных клиентов.
+                350 заказов и завоевали доверие сотен постоянных клиентов.
               </p>
               <p className="text-[#475569] leading-relaxed">
                 Наша миссия — освободить ваше время от уборки. Мы берём на себя всю работу,
                 используем только безопасные сертифицированные средства и гарантируем результат.
               </p>
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <Link
+                  href="/#booking"
+                  className="inline-flex items-center justify-center font-semibold rounded-2xl bg-[#00C9A7] text-white hover:bg-[#00A887] shadow-lg shadow-[#00C9A7]/25 px-8 py-4 text-lg transition-colors"
+                >
+                  Заказать уборку
+                </Link>
+                <a
+                  href="tel:+375444789360"
+                  className="inline-flex items-center justify-center gap-2 font-semibold rounded-2xl border-2 border-[#00B4D8] text-[#0077B6] hover:bg-[#F0FDFF] px-8 py-4 text-lg transition-colors"
+                >
+                  <Phone size={18} />
+                  +375 (44) 478-93-60
+                </a>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               {[
-                { value: "3 500+", label: "Заказов выполнено" },
+                { value: "350+", label: "Заказов выполнено" },
                 { value: "30+", label: "Специалистов" },
                 { value: "4.9★", label: "Средняя оценка" },
                 { value: "5 лет", label: "Опыт работы" },

@@ -11,11 +11,12 @@ import OrderTab from "@/components/tma/tabs/OrderTab";
 import ReviewsTab from "@/components/tma/tabs/ReviewsTab";
 import ProfileTab from "@/components/tma/tabs/ProfileTab";
 import AdminTab from "@/components/tma/tabs/AdminTab";
+import AboutTab from "@/components/tma/tabs/AboutTab";
 import SupportFAB from "@/components/tma/SupportFAB";
 import { useTelegramWebApp } from "@/lib/tma/useTelegramWebApp";
 
 type AppScreen = "splash" | "onboarding" | "main";
-export type TabId = "home" | "services" | "order" | "reviews" | "profile" | "admin";
+export type TabId = "home" | "services" | "order" | "reviews" | "profile" | "admin" | "about";
 
 const ONBOARDING_KEY = "pc_tma_onboarded";
 
@@ -157,6 +158,9 @@ export default function TMAPage() {
             {activeTab === "profile" && <ProfileTab user={user} webApp={webApp} />}
             {activeTab === "admin" && isAdmin && user?.id && (
               <AdminTab tgId={String(user.id)} />
+            )}
+            {activeTab === "about" && (
+              <AboutTab onBack={() => handleTabChange("home")} />
             )}
           </div>
         </div>

@@ -339,6 +339,32 @@ export default function HomeTab({ user, onGoToOrder, onTabChange }: HomeTabProps
         </div>
       </div>
 
+      {/* About company card */}
+      <div style={{ padding: "16px 16px 0" }}>
+        <button
+          onClick={() => onTabChange("about")}
+          style={{
+            width: "100%",
+            background: "linear-gradient(135deg, #F0FDFF 0%, #E0F7FF 100%)",
+            border: "1px solid #BAE6FD",
+            borderRadius: 16,
+            padding: "14px 16px",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            cursor: "pointer",
+            textAlign: "left",
+          }}
+        >
+          <span style={{ fontSize: 26 }}>🏢</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ color: "#0077B6", fontWeight: 700, fontSize: 14 }}>О компании PrimeClean</div>
+            <div style={{ color: "#94A3B8", fontSize: 12, marginTop: 2 }}>История, ценности, гарантии</div>
+          </div>
+          <span style={{ color: "#00B4D8", fontSize: 18 }}>›</span>
+        </button>
+      </div>
+
       {/* Quick contacts */}
       <div style={{ padding: "20px 16px 0" }}>
         <h2
