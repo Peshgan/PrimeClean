@@ -6,6 +6,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SupportWidget from "@/components/ui/SupportWidget";
 import ScrollReveal from "@/components/ui/ScrollReveal";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -179,6 +180,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Footer />
         <SupportWidget />
         <ScrollReveal />
+        <SpeedInsights />
       </body>
     </html>
   );
