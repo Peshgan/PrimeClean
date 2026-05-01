@@ -21,6 +21,9 @@ const BookingSchema = z.object({
   tgUserId: z.string().optional(),
   contactPreference: z.enum(["callback", "chat"]).optional(),
   source: z.enum(["website", "telegram"]).default("website"),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+  fingerprint: z.string().optional(),
 });
 
 function normalizeExtras(extras: string[] | Record<string, number> | undefined): Record<string, number> | null {
@@ -41,17 +44,19 @@ function formatExtras(extras: Record<string, number> | null): string {
     .map(([k, q]) => `${L[k] ?? k}${q > 1 ? ` ×${q}` : ""}`).join(", ");
 }
 
-async function notifyAdmin(id: number, d: z.infer<typeof BookingSchema>, extras: Record<string, number> | null) {
+async function notifyAdmin(id: number, d: z.infer<typeof BookingSchema>, extras: Record<string, number> | null, ip: string | null) {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   const chat = process.env.TELEGRAM_ADMIN_CHAT_ID;
   if (!token || !chat) return;
   const tg = d.tgUsername ? `@${d.tgUsername}` : d.tgUserId ? `<a href="tg://user?id=${d.tgUserId}">Telegram</a>` : "—";
+  const fp = d.fingerprint ?? "—";
+  const ua = d.userAgent ? d.userAgent.slice(0, 80) : "—";
   await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       chat_id: chat, parse_mode: "HTML",
-      text: `📋 <b>Новая заявка #${id}</b>\n\n👤 ${d.name} | <code>${d.phone}</code>\n🧹 ${d.serviceName ?? d.serviceSlug}\n📅 ${d.bookingDate} в ${d.bookingTime}\n💰 ~${d.priceEstimate ?? "?"} BYN\n📍 ${d.address ?? "не указан"}\n➕ ${formatExtras(extras)}\n💬 ${d.comment ?? "—"}\n📲 ${tg}\n🔌 ${d.source}`,
+      text: `📋 <b>Новая заявка #${id}</b>\n\n👤 ${d.name} | <code>${d.phone}</code>\n🧹 ${d.serviceName ?? d.serviceSlug}\n📅 ${d.bookingDate} в ${d.bookingTime}\n💰 ~${d.priceEstimate ?? "?"} BYN\n📍 ${d.address ?? "не указан"}\n➕ ${formatExtras(extras)}\n💬 ${d.comment ?? "—"}\n📲 ${tg}\n🔌 ${d.source}\n\n🌐 IP: <code>${ip ?? "—"}</code>\n🖥 ${ua}\n🔑 FP: <code>${fp}</code>`,
     }),
   }).catch(() => {});
 }
@@ -62,25 +67,28 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: "Некорректные данные" }, { status: 400 });
     const d = parsed.data;
     const extras = normalizeExtras(d.extras);
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? req.headers.get("x-real-ip") ?? null;
+    const headerIp = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? req.headers.get("x-real-ip") ?? null;
+    const ip = d.ipAddress ?? headerIp;
+    const userAgent = d.userAgent ?? req.headers.get("user-agent") ?? null;
     const sql = await getDb();
 
     const [row] = await sql`
       INSERT INTO bookings
         (user_telegram_id, tg_username, tg_user_id, name, phone, service_slug, service_name,
          booking_date, booking_time, address, rooms, area, extras, price_estimate,
-         comment, contact_preference, source, ip_address)
+         comment, contact_preference, source, ip_address, user_agent, fingerprint)
       VALUES (
         ${d.userTelegramId ?? d.tgUserId ?? null}, ${d.tgUsername ?? null}, ${d.tgUserId ?? null},
         ${d.name}, ${d.phone}, ${d.serviceSlug}, ${d.serviceName ?? null},
         ${d.bookingDate}, ${d.bookingTime}, ${d.address ?? null}, ${d.rooms ?? null}, ${d.area ?? null},
         ${extras ? JSON.stringify(extras) : null}, ${d.priceEstimate ?? null},
-        ${d.comment ?? null}, ${d.contactPreference ?? "callback"}, ${d.source}, ${ip}
+        ${d.comment ?? null}, ${d.contactPreference ?? "callback"}, ${d.source},
+        ${ip}, ${userAgent}, ${d.fingerprint ?? null}
       )
       RETURNING id
     `;
 
-    await notifyAdmin(row.id, d, extras);
+    await notifyAdmin(row.id, d, extras, ip);
     return NextResponse.json({ success: true, bookingId: row.id, message: "Заявка принята! Перезвоним в течение 15 минут." });
   } catch (err) {
     console.error("[POST /api/bookings]", err);

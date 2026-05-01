@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import { headers } from "next/headers";
 
 const BookingSchema = z.object({
   name: z.string().min(2, "Введите ваше имя").max(100),
@@ -34,6 +35,8 @@ export async function createBooking(
     area: formData.get("area")?.toString() || undefined,
     comment: formData.get("comment")?.toString() || undefined,
     consent: formData.get("consent")?.toString() || "",
+    fingerprint: formData.get("fingerprint")?.toString() || undefined,
+    userAgent: formData.get("userAgent")?.toString() || undefined,
   };
 
   const parsed = BookingSchema.safeParse(raw);
@@ -46,6 +49,11 @@ export async function createBooking(
   }
 
   const d = parsed.data;
+  const reqHeaders = await headers();
+  const ip = reqHeaders.get("x-forwarded-for")?.split(",")[0].trim()
+    ?? reqHeaders.get("x-real-ip")
+    ?? undefined;
+  const ua = reqHeaders.get("user-agent") ?? undefined;
   const backendUrl = process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://primeclean-production.up.railway.app";
 
   try {
@@ -65,6 +73,9 @@ export async function createBooking(
         area: d.area ? Number(d.area) : undefined,
         comment: d.comment,
         source: "website",
+        ipAddress: ip,
+        userAgent: d.userAgent ?? ua,
+        fingerprint: d.fingerprint,
       }),
     });
     clearTimeout(timeout);

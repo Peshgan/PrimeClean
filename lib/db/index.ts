@@ -141,6 +141,8 @@ async function initSchema(sql: ReturnType<typeof postgres>) {
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS contact_preference TEXT DEFAULT 'callback'`,
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS price_actual REAL`,
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS ip_address TEXT`,
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS user_agent TEXT`,
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS fingerprint TEXT`,
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code TEXT`,
     `ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by TEXT`,
     `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code) WHERE referral_code IS NOT NULL`,

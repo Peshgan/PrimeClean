@@ -29,6 +29,22 @@ export default function BookingForm({ preselectedService, compact = false }: Boo
   const [state, formAction, isPending] = useActionState(createBooking, initialState);
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const fpRef = useRef<HTMLInputElement>(null);
+  const uaRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (uaRef.current) uaRef.current.value = navigator.userAgent;
+    if (fpRef.current) {
+      const fp = [
+        screen.width, screen.height, screen.colorDepth,
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
+        navigator.language,
+        navigator.hardwareConcurrency ?? 0,
+        new Date().getTimezoneOffset(),
+      ].join("|");
+      fpRef.current.value = btoa(fp).slice(0, 64);
+    }
+  }, []);
 
   useEffect(() => {
     if (state.success) {
@@ -44,6 +60,8 @@ export default function BookingForm({ preselectedService, compact = false }: Boo
 
   return (
     <form ref={formRef} action={formAction} noValidate>
+      <input ref={fpRef} type="hidden" name="fingerprint" />
+      <input ref={uaRef} type="hidden" name="userAgent" />
       <div className={`grid ${compact ? "grid-cols-1 gap-3" : "grid-cols-1 sm:grid-cols-2 gap-4"}`}>
         {/* Name */}
         <div>
