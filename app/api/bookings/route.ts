@@ -62,19 +62,20 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) return NextResponse.json({ error: "Некорректные данные" }, { status: 400 });
     const d = parsed.data;
     const extras = normalizeExtras(d.extras);
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? req.headers.get("x-real-ip") ?? null;
     const sql = await getDb();
 
     const [row] = await sql`
       INSERT INTO bookings
         (user_telegram_id, tg_username, tg_user_id, name, phone, service_slug, service_name,
          booking_date, booking_time, address, rooms, area, extras, price_estimate,
-         comment, contact_preference, source)
+         comment, contact_preference, source, ip_address)
       VALUES (
         ${d.userTelegramId ?? d.tgUserId ?? null}, ${d.tgUsername ?? null}, ${d.tgUserId ?? null},
         ${d.name}, ${d.phone}, ${d.serviceSlug}, ${d.serviceName ?? null},
         ${d.bookingDate}, ${d.bookingTime}, ${d.address ?? null}, ${d.rooms ?? null}, ${d.area ?? null},
         ${extras ? JSON.stringify(extras) : null}, ${d.priceEstimate ?? null},
-        ${d.comment ?? null}, ${d.contactPreference ?? "callback"}, ${d.source}
+        ${d.comment ?? null}, ${d.contactPreference ?? "callback"}, ${d.source}, ${ip}
       )
       RETURNING id
     `;
